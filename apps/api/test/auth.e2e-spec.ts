@@ -1,10 +1,11 @@
 import { INestApplication, ValidationPipe } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { JwtPayload, UserRole } from '@reservafacil/contracts';
-import * as request from 'supertest';
+import request from 'supertest';
 import { DataSource } from 'typeorm';
 
 import { AppModule } from '../src/app.module';
+import { PasswordService } from '../src/modules/auth/password.service';
 
 const negocio = {
   businessName: 'Barbería Don Lucho',
@@ -84,19 +85,25 @@ describe('Auth (e2e)', () => {
     });
 
     it('no deja el negocio creado si el usuario falla', async () => {
-      await request(app.getHttpServer()).post('/auth/register-business').send(negocio).expect(201);
+      // El hash corre dentro de la transacción, después de crear el tenant:
+      // hacerlo reventar es la forma determinista de probar el rollback.
+      const passwordService = app.get(PasswordService);
+      const spy = jest.spyOn(passwordService, 'hash').mockRejectedValueOnce(new Error('boom'));
 
-      // Mismo email en el mismo negocio: choca con uq_users_tenant_email.
-      await request(app.getHttpServer())
-        .post('/auth/register-business')
-        .send({ ...negocio, slug: 'otro-slug' })
-        .expect(409);
+      try {
+        await request(app.getHttpServer())
+          .post('/auth/register-business')
+          .send({ ...negocio, slug: 'negocio-fantasma' })
+          .expect(500);
 
-      // La transacción revirtió: el negocio del intento fallido no quedó.
-      const tenants = await dataSource.query('SELECT slug FROM "tenants" WHERE slug = $1', [
-        'otro-slug',
-      ]);
-      expect(tenants).toHaveLength(0);
+        // La transacción revirtió: el negocio del intento fallido no quedó.
+        const tenants = await dataSource.query('SELECT slug FROM "tenants" WHERE slug = $1', [
+          'negocio-fantasma',
+        ]);
+        expect(tenants).toHaveLength(0);
+      } finally {
+        spy.mockRestore();
+      }
     });
 
     it('rechaza un slug con formato inválido con 400', async () => {
@@ -138,7 +145,7 @@ describe('Auth (e2e)', () => {
         .send({ email: negocio.email, password: negocio.password })
         .expect(200);
 
-      const payload = decodePayload(respuesta.body.tokens.accessToken) as Record<string, unknown>;
+      const payload = decodePayload(respuesta.body.tokens.accessToken);
 
       expect(Object.keys(payload).sort()).toEqual(['exp', 'iat', 'role', 'sub', 'tenantId']);
     });
