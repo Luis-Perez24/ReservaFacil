@@ -6,6 +6,7 @@ import { resolve } from 'node:path';
 import { EnvironmentVariables, validateEnv } from './infra/config/env.validation';
 import { buildTypeOrmOptions } from './infra/db/typeorm-options';
 import { AuthModule } from './modules/auth/auth.module';
+import { CatalogModule } from './modules/catalog/catalog.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 
 @Module({
@@ -30,6 +31,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     }),
     AuthModule,
     TenantsModule,
+    CatalogModule,
   ],
 })
 export class AppModule {}
