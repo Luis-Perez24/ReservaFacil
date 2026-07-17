@@ -12,6 +12,11 @@ export interface RegisterBusinessRequest {
 export interface LoginRequest {
   email: string;
   password: string;
+  /**
+   * Solo hace falta si el email existe en más de un negocio: el modelo permite
+   * el mismo email en varios tenants (UNIQUE (tenant_id, email)).
+   */
+  slug?: string;
 }
 
 export interface RefreshRequest {
