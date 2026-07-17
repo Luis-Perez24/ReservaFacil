@@ -1,0 +1,49 @@
+# Dependencias
+node_modules/
+.pnp
+.pnp.js
+.pnpm-store/
+
+# Build
+dist/
+build/
+out/
+*.tsbuildinfo
+apps/web/.angular/
+
+# Entorno — NUNCA commitear credenciales
+.env
+.env.*
+!.env.example
+
+# Notas y contexto local — no son parte del producto
+*.local.md
+.private/
+scratch/
+.claude/
+CLAUDE.md
+
+# Logs
+*.log
+npm-debug.log*
+pnpm-debug.log*
+logs/
+
+# Tests / cobertura
+coverage/
+.nyc_output/
+
+# Editor / SO
+.vscode/*
+!.vscode/extensions.json
+.idea/
+.DS_Store
+Thumbs.db
+
+# Datos locales
+*.sqlite
+pgdata/
+redisdata/
+
+# k6
+k6-results/

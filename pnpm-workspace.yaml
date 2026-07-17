@@ -1,0 +1,11 @@
+packages:
+  - 'apps/*'
+  - 'packages/*'
+
+# pnpm no corre scripts de instalación salvo que el paquete esté acá.
+# argon2 y unrs-resolver compilan bindings nativos y los necesitan.
+# @scarf/scarf es solo telemetría de instalación: no se le permite.
+allowBuilds:
+  argon2: true
+  unrs-resolver: true
+  '@scarf/scarf': false
