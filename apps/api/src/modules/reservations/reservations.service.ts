@@ -14,6 +14,7 @@ import { AvailabilityService } from '../catalog/availability.service';
 import { TenantsService } from '../tenants/tenants.service';
 import type { CreateReservationDto } from './dto/create-reservation.dto';
 import { Reservation } from './entities/reservation.entity';
+import { assertTransition } from './reservation-state-machine';
 
 /** Retención del slot mientras el cliente paga. Ver regla #2 y `adr/0002`. */
 const HOLD_MINUTES = 10;
@@ -143,6 +144,68 @@ export class ReservationsService {
 
   async findById(tenantId: string, id: string): Promise<Reservation | null> {
     return this.reservations.findOne({ where: { id, tenantId } });
+  }
+
+  /**
+   * La reserva que se puede pagar: existe, es de este negocio, sigue `PENDING`
+   * y su retención no venció. Se valida antes de mandar al cliente a Webpay:
+   * cobrar por un slot que ya se liberó sería el peor error posible.
+   */
+  async findPayable(tenantId: string, id: string): Promise<Reservation> {
+    const reservation = await this.findById(tenantId, id);
+
+    if (!reservation) {
+      throw new NotFoundException('Reserva no encontrada');
+    }
+
+    if (reservation.status !== ReservationStatus.PENDING) {
+      throw new ConflictException(`La reserva ya no acepta pagos (estado ${reservation.status})`);
+    }
+
+    if (reservation.expiresAt && reservation.expiresAt.getTime() <= Date.now()) {
+      throw new ConflictException('La retención de la reserva expiró');
+    }
+
+    return reservation;
+  }
+
+  /**
+   * `PENDING → PAID → CONFIRMED` tras la aprobación de Webpay. Recibe el
+   * `manager` del pago —mismo patrón que `TenantsService.createWithinTransaction`—
+   * para que registrar el pago y confirmar la reserva sean atómicos: no puede
+   * existir un cobro aprobado sin su reserva confirmada.
+   *
+   * Toma un lock pesimista sobre la fila: dos commits simultáneos del mismo
+   * `token_ws` se serializan y el segundo ve la reserva ya `CONFIRMED`.
+   */
+  async confirmWithinTransaction(
+    manager: EntityManager,
+    tenantId: string,
+    id: string,
+  ): Promise<Reservation> {
+    const reservation = await manager.findOne(Reservation, {
+      where: { id, tenantId },
+      lock: { mode: 'pessimistic_write' },
+    });
+
+    if (!reservation) {
+      throw new NotFoundException('Reserva no encontrada');
+    }
+
+    // Ya confirmada por un commit anterior: idempotente, no es un error.
+    if (reservation.status === ReservationStatus.CONFIRMED) {
+      return reservation;
+    }
+
+    // Las dos transiciones del flujo, validadas por la máquina de estados.
+    assertTransition(reservation.status, ReservationStatus.PAID);
+    assertTransition(ReservationStatus.PAID, ReservationStatus.CONFIRMED);
+
+    reservation.status = ReservationStatus.CONFIRMED;
+    // Confirmada ya no hay retención que vencer: el slot es suyo.
+    reservation.expiresAt = null;
+
+    return manager.save(reservation);
   }
 
   private async assertSlotIsBookable(

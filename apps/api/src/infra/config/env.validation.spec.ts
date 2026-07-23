@@ -14,6 +14,10 @@ const envValido = {
   JWT_ACCESS_TTL: '15m',
   JWT_REFRESH_SECRET: 'b'.repeat(64),
   JWT_REFRESH_TTL: '7d',
+  TRANSBANK_COMMERCE_CODE: '597055555532',
+  TRANSBANK_API_KEY: 'd'.repeat(64),
+  TRANSBANK_ENVIRONMENT: 'integration',
+  TRANSBANK_RETURN_URL: 'http://localhost:3000/payments/webpay/return',
 };
 
 describe('validateEnv', () => {
@@ -52,5 +56,12 @@ describe('validateEnv', () => {
 
   it('rechaza un NODE_ENV desconocido', () => {
     expect(() => validateEnv({ ...envValido, NODE_ENV: 'produccion' })).toThrow(/NODE_ENV/);
+  });
+
+  it('rechaza un ambiente de Transbank desconocido', () => {
+    // Un typo acá apuntaría los pagos al ambiente equivocado: mejor no arrancar.
+    expect(() => validateEnv({ ...envValido, TRANSBANK_ENVIRONMENT: 'sandbox' })).toThrow(
+      /TRANSBANK_ENVIRONMENT/,
+    );
   });
 });

@@ -16,6 +16,12 @@ export enum NodeEnv {
   Test = 'test',
 }
 
+/** Ambiente de Webpay. `integration` usa las credenciales públicas de prueba. */
+export enum TransbankEnvironment {
+  Integration = 'integration',
+  Production = 'production',
+}
+
 /**
  * Contrato del entorno. Si algo falta o está mal, el proceso no arranca:
  * es preferible fallar al levantar que descubrir en producción un token
@@ -79,6 +85,24 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   JWT_REFRESH_TTL!: string;
+
+  // Webpay Plus. Los valores de integración son públicos (vienen en el propio
+  // SDK); en producción se reemplazan por los del convenio con Transbank.
+  @IsString()
+  @IsNotEmpty()
+  TRANSBANK_COMMERCE_CODE!: string;
+
+  @IsString()
+  @IsNotEmpty()
+  TRANSBANK_API_KEY!: string;
+
+  @IsEnum(TransbankEnvironment)
+  TRANSBANK_ENVIRONMENT!: TransbankEnvironment;
+
+  /** A dónde vuelve el navegador del cliente después de pagar. */
+  @IsString()
+  @IsNotEmpty()
+  TRANSBANK_RETURN_URL!: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {
