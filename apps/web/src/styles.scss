@@ -1,0 +1,83 @@
+/**
+ * Tokens y reset. La página es white-label: cada negocio trae su color, así que
+ * `--brand` es lo único que cambia en runtime y el resto del chasis es neutro.
+ *
+ * El color del negocio nunca se usa como fondo de texto —puede llegar cualquier
+ * hex desde la base y el contraste sería impredecible—: va en reglas, marcas y
+ * bordes, donde un color claro u oscuro se ve bien igual.
+ */
+:root {
+  --brand: #1d4ed8;
+
+  --ink: #14161a;
+  --ink-soft: #5b6472;
+  --paper: #ffffff;
+  --mist: #f4f6f9;
+  --line: #dde2e9;
+
+  --space-1: 0.25rem;
+  --space-2: 0.5rem;
+  --space-3: 0.75rem;
+  --space-4: 1rem;
+  --space-6: 1.5rem;
+  --space-8: 2rem;
+  --space-12: 3rem;
+  --space-16: 4rem;
+
+  /* Sin fuentes remotas: la página pública se abre desde el celular del cliente,
+     muchas veces con datos móviles. El carácter lo dan la escala y los pesos. */
+  --font-sans:
+    system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
+  --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+
+  color-scheme: light;
+}
+
+*,
+*::before,
+*::after {
+  box-sizing: border-box;
+}
+
+html,
+body {
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--font-sans);
+  font-size: 1rem;
+  line-height: 1.55;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1,
+h2,
+h3,
+p,
+figure {
+  margin: 0;
+}
+
+img {
+  max-width: 100%;
+  display: block;
+}
+
+:focus-visible {
+  outline: 2px solid var(--brand);
+  outline-offset: 3px;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  *,
+  *::before,
+  *::after {
+    animation-duration: 0.01ms !important;
+    animation-iteration-count: 1 !important;
+    transition-duration: 0.01ms !important;
+  }
+}

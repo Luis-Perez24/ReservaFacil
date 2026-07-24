@@ -1,0 +1,61 @@
+<div class="page" [style.--brand]="brandColor()">
+  <span class="page__rule" aria-hidden="true"></span>
+
+  @switch (status()) {
+    @case ('loading') {
+      <p class="notice" role="status">Cargando el negocio…</p>
+    }
+
+    @case ('not-found') {
+      <section class="notice notice--block">
+        <h1 class="notice__title">Este negocio no existe</h1>
+        <p>Revisa el enlace: puede tener un error de escritura o el negocio ya no está publicado.</p>
+      </section>
+    }
+
+    @case ('error') {
+      <section class="notice notice--block">
+        <h1 class="notice__title">No pudimos cargar el negocio</h1>
+        <p>Hubo un problema de conexión. Vuelve a intentar en unos segundos.</p>
+      </section>
+    }
+  }
+
+  @if (tenant(); as negocio) {
+    <header class="masthead">
+      @if (logoUrl(); as logo) {
+        <img class="masthead__logo" [src]="logo" [alt]="negocio.name" />
+      }
+
+      <h1 class="masthead__name">{{ negocio.name }}</h1>
+      <p class="masthead__lead">Elige un servicio para ver las horas disponibles.</p>
+    </header>
+
+    <main class="agenda">
+      <h2 class="agenda__title">Servicios</h2>
+
+      @if (services().length === 0) {
+        <p class="notice">Este negocio todavía no publicó servicios.</p>
+      } @else {
+        <ol class="agenda__list">
+          @for (service of services(); track service.id; let i = $index) {
+            <li class="entry" [style.--i]="i">
+              <span class="entry__mark" aria-hidden="true"></span>
+
+              <div class="entry__text">
+                <h3 class="entry__name">{{ service.name }}</h3>
+                <p class="entry__price">{{ service.price }}</p>
+              </div>
+
+              <span class="entry__duration">{{ service.duration }}</span>
+            </li>
+          }
+        </ol>
+      }
+
+      @if (cityLabel(); as ciudad) {
+        <p class="agenda__timezone">Los horarios están en hora de {{ ciudad }}.</p>
+      }
+    </main>
+  }
+</div>

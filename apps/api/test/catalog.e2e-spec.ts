@@ -306,6 +306,27 @@ describe('Catalog (e2e)', () => {
     });
   });
 
+  describe('GET /public/:slug', () => {
+    it('devuelve los datos públicos del negocio, sin auth', async () => {
+      await registerBusiness('barberia-a', 'a@test.cl');
+
+      const negocio = await request(app.getHttpServer()).get('/public/barberia-a').expect(200);
+
+      expect(negocio.body).toMatchObject({
+        name: 'Negocio barberia-a',
+        slug: 'barberia-a',
+        timezone: 'America/Santiago',
+      });
+      // Sin uuid ni flags internos: quien entra por el slug no los necesita.
+      expect(negocio.body.id).toBeUndefined();
+      expect(negocio.body.active).toBeUndefined();
+    });
+
+    it('un slug inexistente responde 404', async () => {
+      await request(app.getHttpServer()).get('/public/no-existe').expect(404);
+    });
+  });
+
   describe('GET /public/:slug/services', () => {
     it('lista solo servicios activos, sin auth', async () => {
       const { token } = await registerBusiness('barberia-a', 'a@test.cl');

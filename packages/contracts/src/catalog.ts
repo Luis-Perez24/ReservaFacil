@@ -59,6 +59,25 @@ export interface CreateAvailabilityExceptionRequest {
   endTime?: string;
 }
 
+/** Identidad visual del negocio en su página pública. */
+export interface TenantBrandingResponse {
+  logoUrl: string | null;
+  /** Color de acento en hex (`#1d4ed8`); si es null, la página usa el suyo. */
+  primaryColor: string | null;
+}
+
+/**
+ * El negocio visto desde su página pública. No expone `id` ni `active`: quien
+ * entra por el slug no necesita el uuid, y un negocio inactivo responde 404.
+ */
+export interface PublicTenantResponse {
+  name: string;
+  slug: string;
+  /** Timezone IANA, para que el front muestre los slots en hora local. */
+  timezone: string;
+  branding: TenantBrandingResponse | null;
+}
+
 /** Lo que la página pública puede saber de un servicio. Sin `active`: solo se listan activos. */
 export interface PublicServiceResponse {
   id: string;

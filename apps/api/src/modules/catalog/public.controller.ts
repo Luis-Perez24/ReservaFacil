@@ -1,6 +1,10 @@
 import { Controller, Get, NotFoundException, Param, Query } from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import { PublicAvailabilityResponse, PublicServiceResponse } from '@reservafacil/contracts';
+import {
+  PublicAvailabilityResponse,
+  PublicServiceResponse,
+  PublicTenantResponse,
+} from '@reservafacil/contracts';
 
 import { TenantsService } from '../tenants/tenants.service';
 import { AvailabilityService } from './availability.service';
@@ -19,6 +23,23 @@ export class PublicController {
     private readonly servicesService: ServicesService,
     private readonly availabilityService: AvailabilityService,
   ) {}
+
+  @Get()
+  @ApiOperation({ summary: 'Datos públicos del negocio (nombre, timezone, branding)' })
+  async findTenant(@Param('slug') slug: string): Promise<PublicTenantResponse> {
+    const tenant = await this.tenantsService.findBySlug(slug);
+
+    if (!tenant || !tenant.active) {
+      throw new NotFoundException('Negocio no encontrado');
+    }
+
+    return {
+      name: tenant.name,
+      slug: tenant.slug,
+      timezone: tenant.timezone,
+      branding: tenant.branding,
+    };
+  }
 
   @Get('services')
   @ApiOperation({ summary: 'Servicios activos del negocio' })

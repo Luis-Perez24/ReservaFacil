@@ -1,0 +1,170 @@
+/**
+ * La lista de servicios se dibuja como una columna de agenda —línea vertical y
+ * marcas—, que es el objeto que el producto reemplaza: el cuaderno del mostrador.
+ * Es el único gesto fuerte de la página; el resto se mantiene callado.
+ */
+
+.page {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 0 var(--space-6) var(--space-16);
+}
+
+/* Única superficie grande con el color del negocio: una regla, no un fondo.
+   Va de borde a borde de la ventana para leerse como identidad del negocio y
+   no como un adorno del contenido. */
+.page__rule {
+  display: block;
+  height: 4px;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-bottom: var(--space-12);
+  background: var(--brand);
+}
+
+.masthead {
+  padding-block: var(--space-4) var(--space-12);
+}
+
+.masthead__logo {
+  width: auto;
+  height: 3rem;
+  margin-bottom: var(--space-6);
+}
+
+.masthead__name {
+  font-size: clamp(2.5rem, 9vw, 4.25rem);
+  font-weight: 800;
+  letter-spacing: -0.035em;
+  line-height: 0.98;
+  text-wrap: balance;
+}
+
+.masthead__lead {
+  margin-top: var(--space-4);
+  max-width: 34ch;
+  color: var(--ink-soft);
+  font-size: 1.0625rem;
+}
+
+.agenda__title {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.agenda__list {
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+
+/* El riel lo dibuja cada entrada hacia la siguiente, no la lista entera: así un
+   negocio con un solo servicio muestra su marca sin una línea colgando. */
+.entry::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: calc(var(--space-6) + 1.2em);
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+
+.entry:last-child::before {
+  display: none;
+}
+
+.entry {
+  position: relative;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: baseline;
+  gap: var(--space-4);
+  padding: var(--space-6) 0 var(--space-6) var(--space-8);
+  border-bottom: 1px solid var(--line);
+  animation: entry-rise 0.45s ease both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+.entry:last-child {
+  border-bottom: 0;
+}
+
+.entry__mark {
+  position: absolute;
+  left: 0;
+  /* Alineada con la primera línea del nombre, no con el bloque. */
+  top: calc(var(--space-6) + 0.55em);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--paper);
+  border: 2px solid var(--brand);
+}
+
+.entry__name {
+  font-size: 1.375rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.entry__price {
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+.entry__duration {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  padding: var(--space-1) var(--space-3);
+  background: var(--mist);
+  border-radius: 999px;
+}
+
+.agenda__timezone {
+  margin-top: var(--space-8);
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  color: var(--ink-soft);
+}
+
+.notice {
+  color: var(--ink-soft);
+  padding-block: var(--space-8);
+}
+
+.notice--block {
+  padding-block: var(--space-16);
+}
+
+.notice__title {
+  font-size: 1.75rem;
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  margin-bottom: var(--space-3);
+  color: var(--ink);
+}
+
+@keyframes entry-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

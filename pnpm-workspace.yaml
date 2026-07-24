@@ -5,7 +5,16 @@ packages:
 # pnpm no corre scripts de instalación salvo que el paquete esté acá.
 # argon2 y unrs-resolver compilan bindings nativos y los necesitan.
 # @scarf/scarf es solo telemetría de instalación: no se le permite.
+#
+# Los cuatro de abajo llegan con la toolchain de Angular (apps/web) y todos
+# bajan o compilan binarios nativos: esbuild es el compilador —sin su script
+# no hay build—, y lmdb + msgpackr-extract + nice-napi son la caché en disco
+# del CLI, que sin ellos funciona pero mucho más lento.
 allowBuilds:
   argon2: true
   unrs-resolver: true
   '@scarf/scarf': false
+  esbuild: true
+  lmdb: true
+  msgpackr-extract: true
+  nice-napi: true
