@@ -31,26 +31,159 @@
       <p class="masthead__lead">Elige un servicio para ver las horas disponibles.</p>
     </header>
 
-    <main class="agenda">
-      <h2 class="agenda__title">Servicios</h2>
+    <main>
+      @if (reservation(); as reserva) {
+        <!-- Paso 4: el horario está retenido y falta pagar. -->
+        <section class="hold">
+          @if (holdExpired()) {
+            <h2 class="hold__title">Se acabó el tiempo</h2>
+            <p class="hold__text">
+              Tu hora volvió a quedar disponible para otras personas. Puedes elegirla otra vez si
+              sigue libre.
+            </p>
+            <button class="button button--ghost" type="button" (click)="reset()">
+              Volver a empezar
+            </button>
+          } @else {
+            <h2 class="hold__title">Tu hora está reservada</h2>
+            <p class="hold__text">
+              Te la guardamos mientras pagas. Si no completas el pago, vuelve a quedar disponible.
+            </p>
 
-      @if (services().length === 0) {
-        <p class="notice">Este negocio todavía no publicó servicios.</p>
-      } @else {
-        <ol class="agenda__list">
-          @for (service of services(); track service.id; let i = $index) {
-            <li class="entry" [style.--i]="i">
-              <span class="entry__mark" aria-hidden="true"></span>
+            <p class="hold__timer">
+              Quedan <app-hold-countdown [expiresAt]="reserva.expiresAt!" (expired)="onHoldExpired()" />
+            </p>
 
-              <div class="entry__text">
-                <h3 class="entry__name">{{ service.name }}</h3>
-                <p class="entry__price">{{ service.price }}</p>
-              </div>
+            <button class="button" type="button" [disabled]="paying()" (click)="pay()">
+              {{ paying() ? 'Abriendo Webpay…' : 'Pagar con Webpay' }}
+            </button>
 
-              <span class="entry__duration">{{ service.duration }}</span>
-            </li>
+            @if (bookingError(); as error) {
+              <p class="field__error" role="alert">{{ error }}</p>
+            }
           }
-        </ol>
+        </section>
+      } @else {
+        <!-- Paso 1: elegir servicio. -->
+        <section class="agenda">
+          <h2 class="agenda__title">Servicios</h2>
+
+          @if (services().length === 0) {
+            <p class="notice">Este negocio todavía no publicó servicios.</p>
+          } @else {
+            <ol class="agenda__list">
+              @for (service of services(); track service.id; let i = $index) {
+                <li class="entry" [style.--i]="i">
+                  <span class="entry__mark" aria-hidden="true"></span>
+
+                  <button
+                    class="entry__button"
+                    type="button"
+                    [class.entry__button--active]="selectedService()?.id === service.id"
+                    (click)="selectService(service)"
+                  >
+                    <span class="entry__text">
+                      <span class="entry__name">{{ service.name }}</span>
+                      <span class="entry__price">{{ service.price }}</span>
+                    </span>
+                    <span class="entry__duration">{{ service.duration }}</span>
+                  </button>
+                </li>
+              }
+            </ol>
+          }
+        </section>
+
+        <!-- Paso 2: elegir día y hora. -->
+        @if (selectedService(); as servicio) {
+          <section class="picker">
+            <h2 class="agenda__title">Cuándo</h2>
+
+            <label class="field">
+              <span class="field__label">Día</span>
+              <input
+                class="field__input"
+                type="date"
+                [value]="selectedDate()"
+                (change)="changeDate($any($event.target).value)"
+              />
+            </label>
+
+            @switch (slotsStatus()) {
+              @case ('loading') {
+                <p class="notice" role="status">Buscando horas…</p>
+              }
+              @case ('error') {
+                <p class="notice" role="alert">No pudimos cargar las horas de ese día.</p>
+              }
+              @case ('ready') {
+                @if (slots().length) {
+                  <ul class="slots">
+                    @for (slot of slots(); track slot.startsAt) {
+                      <li>
+                        <button
+                          class="slot"
+                          type="button"
+                          [class.slot--active]="selectedSlot()?.startsAt === slot.startsAt"
+                          (click)="selectSlot(slot)"
+                        >
+                          {{ slot.label }}
+                        </button>
+                      </li>
+                    }
+                  </ul>
+                } @else {
+                  <p class="notice">No quedan horas libres ese día. Prueba con otra fecha.</p>
+                }
+              }
+            }
+
+            <!-- Vive acá y no dentro del formulario: cuando alguien gana la
+                 carrera por el horario se deselecciona el slot, el formulario
+                 desaparece, y el aviso tiene que quedar a la vista. -->
+            @if (bookingError(); as error) {
+              <p class="field__error" role="alert">{{ error }}</p>
+            }
+          </section>
+
+          <!-- Paso 3: datos de quien reserva. -->
+          @if (selectedSlot(); as slot) {
+            <section class="booking">
+              <h2 class="agenda__title">Tus datos</h2>
+
+              <p class="booking__summary">
+                {{ servicio.name }} · {{ slot.label }} · {{ servicio.price }}
+              </p>
+
+              <form class="form" [formGroup]="form" (ngSubmit)="book()">
+                <label class="field">
+                  <span class="field__label">Nombre</span>
+                  <input class="field__input" type="text" formControlName="clientName" />
+                  @if (form.controls.clientName.touched && form.controls.clientName.invalid) {
+                    <span class="field__error">Escribe tu nombre.</span>
+                  }
+                </label>
+
+                <label class="field">
+                  <span class="field__label">Email</span>
+                  <input class="field__input" type="email" formControlName="clientEmail" />
+                  @if (form.controls.clientEmail.touched && form.controls.clientEmail.invalid) {
+                    <span class="field__error">Escribe un email válido.</span>
+                  }
+                </label>
+
+                <label class="field">
+                  <span class="field__label">Teléfono <span class="field__hint">(opcional)</span></span>
+                  <input class="field__input" type="tel" formControlName="clientPhone" />
+                </label>
+
+                <button class="button" type="submit" [disabled]="submitting()">
+                  {{ submitting() ? 'Reservando…' : 'Reservar esta hora' }}
+                </button>
+              </form>
+            </section>
+          }
+        }
       }
 
       @if (cityLabel(); as ciudad) {

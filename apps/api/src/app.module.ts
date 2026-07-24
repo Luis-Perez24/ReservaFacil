@@ -8,6 +8,7 @@ import { buildTypeOrmOptions } from './infra/db/typeorm-options';
 import { AuthModule } from './modules/auth/auth.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { PaymentsModule } from './modules/payments/payments.module';
+import { RealtimeModule } from './modules/realtime/realtime.module';
 import { ReservationsModule } from './modules/reservations/reservations.module';
 import { TenantsModule } from './modules/tenants/tenants.module';
 
@@ -34,6 +35,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     AuthModule,
     TenantsModule,
     CatalogModule,
+    RealtimeModule,
     ReservationsModule,
     PaymentsModule,
   ],

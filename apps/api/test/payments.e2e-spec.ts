@@ -229,19 +229,21 @@ describe('Payments (e2e)', () => {
   });
 
   describe('POST /payments/webpay/return', () => {
+    /**
+     * Este endpoint lo invoca el navegador, no un cliente de API: responde 302
+     * hacia el frontend. Lo que importa es a dónde manda a la persona y en qué
+     * quedó la base, no un cuerpo JSON.
+     */
     it('★ pago aprobado: PENDING → CONFIRMED y se guarda el raw_response', async () => {
       const { reservationId } = await setupReserva();
       const inicio = await iniciarPago(reservationId).expect(201);
 
-      const respuesta = await retornoWebpay(inicio.body.token).expect(201);
+      const respuesta = await retornoWebpay(inicio.body.token).expect(302);
 
-      expect(respuesta.body).toMatchObject({
-        reservationId,
-        paymentStatus: 'APPROVED',
-        reservationStatus: 'CONFIRMED',
-        amountClp: PRICE_CLP,
-        authorizationCode: '1213',
-      });
+      // Vuelve a la página de su reserva, en el negocio correcto.
+      expect(respuesta.headers.location).toBe(
+        `http://localhost:4200/barberia-pagos/reserva/${reservationId}`,
+      );
       expect(await estadoReserva(reservationId)).toBe('CONFIRMED');
 
       const [pago]: Array<{ status: string; raw_response: Record<string, unknown> }> =
@@ -257,7 +259,7 @@ describe('Payments (e2e)', () => {
       const { reservationId } = await setupReserva();
       const inicio = await iniciarPago(reservationId).expect(201);
 
-      await retornoWebpay(inicio.body.token).expect(201);
+      await retornoWebpay(inicio.body.token).expect(302);
 
       const [reserva]: Array<{ expires_at: Date | null }> = await dataSource.query(
         'SELECT expires_at FROM reservations WHERE id = $1',
@@ -270,19 +272,15 @@ describe('Payments (e2e)', () => {
       const { reservationId } = await setupReserva();
       const inicio = await iniciarPago(reservationId).expect(201);
 
-      const primero = await retornoWebpay(inicio.body.token).expect(201);
+      const primero = await retornoWebpay(inicio.body.token).expect(302);
       expect(webpay.commitCalls).toBe(1);
 
-      const segundo = await retornoWebpay(inicio.body.token).expect(201);
+      const segundo = await retornoWebpay(inicio.body.token).expect(302);
 
-      // No se volvió a llamar a Transbank y el resultado es el mismo.
+      // No se volvió a llamar a Transbank y termina en el mismo lugar.
       expect(webpay.commitCalls).toBe(1);
-      expect(segundo.body).toMatchObject({
-        reservationId,
-        paymentStatus: 'APPROVED',
-        reservationStatus: 'CONFIRMED',
-      });
-      expect(segundo.body.buyOrder).toBe(primero.body.buyOrder);
+      expect(segundo.headers.location).toBe(primero.headers.location);
+      expect(await estadoReserva(reservationId)).toBe('CONFIRMED');
 
       // Y sigue habiendo un solo pago aprobado.
       const [{ count }]: Array<{ count: number }> = await dataSource.query(
@@ -297,13 +295,16 @@ describe('Payments (e2e)', () => {
       webpay.commitResponse = rechazado;
       const inicio = await iniciarPago(reservationId).expect(201);
 
-      const respuesta = await retornoWebpay(inicio.body.token).expect(201);
+      // También vuelve a su reserva: la página le dirá que sigue sin pagar.
+      await retornoWebpay(inicio.body.token).expect(302);
 
-      expect(respuesta.body).toMatchObject({
-        paymentStatus: 'REJECTED',
-        reservationStatus: 'PENDING',
-      });
       expect(await estadoReserva(reservationId)).toBe('PENDING');
+
+      const [pago]: Array<{ status: string }> = await dataSource.query(
+        'SELECT status FROM payments WHERE reservation_id = $1',
+        [reservationId],
+      );
+      expect(pago.status).toBe('REJECTED');
     });
 
     it('tras un rechazo se puede reintentar y confirmar con el intento 2', async () => {
@@ -311,12 +312,12 @@ describe('Payments (e2e)', () => {
 
       webpay.commitResponse = rechazado;
       const primerIntento = await iniciarPago(reservationId).expect(201);
-      await retornoWebpay(primerIntento.body.token).expect(201);
+      await retornoWebpay(primerIntento.body.token).expect(302);
       expect(await estadoReserva(reservationId)).toBe('PENDING');
 
       webpay.commitResponse = aprobado;
       const segundoIntento = await iniciarPago(reservationId).expect(201);
-      await retornoWebpay(segundoIntento.body.token).expect(201);
+      await retornoWebpay(segundoIntento.body.token).expect(302);
 
       expect(await estadoReserva(reservationId)).toBe('CONFIRMED');
     });
@@ -324,7 +325,7 @@ describe('Payments (e2e)', () => {
     it('no se puede volver a pagar una reserva ya confirmada', async () => {
       const { reservationId } = await setupReserva();
       const inicio = await iniciarPago(reservationId).expect(201);
-      await retornoWebpay(inicio.body.token).expect(201);
+      await retornoWebpay(inicio.body.token).expect(302);
 
       await iniciarPago(reservationId).expect(409);
     });
@@ -335,15 +336,17 @@ describe('Payments (e2e)', () => {
       await retornoWebpay('token-que-no-existe').expect(404);
     });
 
-    it('anulación del cliente (TBK_TOKEN sin token_ws) responde 400 y no toca la reserva', async () => {
+    it('si el cliente anula en Webpay vuelve a una página, sin tocar la reserva', async () => {
       const { reservationId } = await setupReserva();
       await iniciarPago(reservationId).expect(201);
 
-      await request(app.getHttpServer())
+      // Webpay manda TBK_TOKEN y ningún token_ws cuando la persona se arrepiente.
+      const respuesta = await request(app.getHttpServer())
         .post('/payments/webpay/return')
         .send({ TBK_TOKEN: 'abc', TBK_ORDEN_COMPRA: 'x', TBK_ID_SESION: 'y' })
-        .expect(400);
+        .expect(302);
 
+      expect(respuesta.headers.location).toBe('http://localhost:4200/pago/anulado');
       expect(await estadoReserva(reservationId)).toBe('PENDING');
       expect(webpay.commitCalls).toBe(0);
     });

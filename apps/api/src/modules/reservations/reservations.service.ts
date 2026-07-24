@@ -11,6 +11,7 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 
 import { isUniqueViolation } from '../../infra/db/unique-violation';
 import { AvailabilityService } from '../catalog/availability.service';
+import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { TenantsService } from '../tenants/tenants.service';
 import type { CreateReservationDto } from './dto/create-reservation.dto';
 import { Reservation } from './entities/reservation.entity';
@@ -27,6 +28,7 @@ export class ReservationsService {
     private readonly dataSource: DataSource,
     private readonly tenantsService: TenantsService,
     private readonly availabilityService: AvailabilityService,
+    private readonly realtime: RealtimeGateway,
   ) {}
 
   /**
@@ -128,7 +130,7 @@ export class ReservationsService {
 
       const row = inserted[0];
 
-      return this.reservations.create({
+      const reservation = this.reservations.create({
         id: row.id,
         tenantId: tenant.id,
         serviceId: dto.serviceId,
@@ -139,11 +141,36 @@ export class ReservationsService {
         expiresAt: row.expires_at,
         priceClp: service.price_clp,
       });
+
+      // Aviso en vivo a quien esté mirando la agenda de este negocio. Va al
+      // final y sin `await` sobre su resultado: que el canal de tiempo real
+      // falle no puede tumbar una reserva que la base ya aceptó.
+      this.realtime.emitSlotTaken(slug, {
+        serviceId: dto.serviceId,
+        startsAt: row.starts_at.toISOString(),
+      });
+
+      return reservation;
     });
   }
 
   async findById(tenantId: string, id: string): Promise<Reservation | null> {
     return this.reservations.findOne({ where: { id, tenantId } });
+  }
+
+  /**
+   * La misma reserva, resolviendo el negocio desde el slug público. Filtrar por
+   * tenant no es decorativo: sin eso, el id de una reserva serviría para leerla
+   * desde la URL de cualquier otro negocio.
+   */
+  async findPublic(slug: string, id: string): Promise<Reservation | null> {
+    const tenant = await this.tenantsService.findBySlug(slug);
+
+    if (!tenant || !tenant.active) {
+      return null;
+    }
+
+    return this.findById(tenant.id, id);
   }
 
   /**

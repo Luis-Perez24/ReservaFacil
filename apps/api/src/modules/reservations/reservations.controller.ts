@@ -1,4 +1,12 @@
-import { Body, Controller, Param, Post } from '@nestjs/common';
+import {
+  Body,
+  Controller,
+  Get,
+  NotFoundException,
+  Param,
+  ParseUUIDPipe,
+  Post,
+} from '@nestjs/common';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { ReservationResponse } from '@reservafacil/contracts';
 
@@ -35,5 +43,25 @@ export class ReservationsController {
     @Body() dto: CreateReservationDto,
   ): Promise<ReservationResponse> {
     return toResponse(await this.reservationsService.create(slug, dto));
+  }
+
+  /**
+   * Para que el cliente vea en qué quedó su reserva al volver de Webpay. Devuelve
+   * solo lo que ya conoce quien tiene el id —horario, estado y precio—, nunca los
+   * datos de la persona: el id es un uuid, pero sigue siendo una URL sin sesión.
+   */
+  @Get(':id')
+  @ApiOperation({ summary: 'Estado de una reserva' })
+  async findOne(
+    @Param('slug') slug: string,
+    @Param('id', ParseUUIDPipe) id: string,
+  ): Promise<ReservationResponse> {
+    const reservation = await this.reservationsService.findPublic(slug, id);
+
+    if (!reservation) {
+      throw new NotFoundException('Reserva no encontrada');
+    }
+
+    return toResponse(reservation);
   }
 }

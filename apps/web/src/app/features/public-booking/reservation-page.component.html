@@ -1,0 +1,61 @@
+<div class="page" [style.--brand]="brandColor()">
+  <span class="page__rule" aria-hidden="true"></span>
+
+  @switch (status()) {
+    @case ('loading') {
+      <p class="notice" role="status">Buscando tu reserva…</p>
+    }
+
+    @case ('not-found') {
+      <section class="notice notice--block">
+        <h1 class="result__title">No encontramos esa reserva</h1>
+        <p>Revisa el enlace que te dejamos al reservar.</p>
+      </section>
+    }
+
+    @case ('error') {
+      <section class="notice notice--block">
+        <h1 class="result__title">No pudimos cargar tu reserva</h1>
+        <p>Hubo un problema de conexión. Vuelve a intentar en unos segundos.</p>
+      </section>
+    }
+  }
+
+  @if (reservation(); as reserva) {
+    <section class="result">
+      @if (confirmed()) {
+        <p class="result__eyebrow">Pago recibido</p>
+        <h1 class="result__title">Tu hora quedó confirmada</h1>
+      } @else {
+        <p class="result__eyebrow">Sin pagar</p>
+        <h1 class="result__title">Tu hora todavía no está confirmada</h1>
+      }
+
+      <dl class="detail">
+        <div class="detail__row">
+          <dt>Cuándo</dt>
+          <dd>{{ whenLabel() }}</dd>
+        </div>
+        <div class="detail__row">
+          <dt>Negocio</dt>
+          <dd>{{ tenant()?.name }}</dd>
+        </div>
+        <div class="detail__row">
+          <dt>Valor</dt>
+          <dd>{{ priceLabel() }}</dd>
+        </div>
+      </dl>
+
+      @if (confirmed()) {
+        <p class="result__text">Te esperamos. Si no puedes venir, avísale al negocio.</p>
+      } @else {
+        <p class="result__text">
+          El pago no se completó, así que la hora sigue disponible para otras personas hasta que
+          venza la retención. Puedes intentar de nuevo desde la página del negocio.
+        </p>
+      }
+
+      <a class="button button--ghost" [routerLink]="['/', slug()]">Volver al negocio</a>
+    </section>
+  }
+</div>

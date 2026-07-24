@@ -1,9 +1,15 @@
-import { BadRequestException, Body, Controller, Param, ParseUUIDPipe, Post } from '@nestjs/common';
+import { Body, Controller, Param, ParseUUIDPipe, Post, Redirect } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
-import type { InitPaymentResponse, PaymentResultResponse } from '@reservafacil/contracts';
+import type { InitPaymentResponse } from '@reservafacil/contracts';
 
 import { WebpayReturnDto } from './dto/webpay-return.dto';
 import { PaymentsService } from './payments.service';
+
+/** A dónde mandar el navegador según cómo terminó el pago. */
+interface RedirectResult {
+  url: string;
+}
 
 /**
  * Pagar es una acción del cliente en la página pública: sin auth, el negocio
@@ -13,7 +19,10 @@ import { PaymentsService } from './payments.service';
 @ApiTags('payments')
 @Controller()
 export class PaymentsController {
-  constructor(private readonly paymentsService: PaymentsService) {}
+  constructor(
+    private readonly paymentsService: PaymentsService,
+    private readonly config: ConfigService,
+  ) {}
 
   @Post('public/:slug/reservations/:reservationId/payments')
   @ApiOperation({ summary: 'Iniciar el pago de una reserva (devuelve URL y token de Webpay)' })
@@ -25,21 +34,29 @@ export class PaymentsController {
   }
 
   /**
-   * Webpay redirige el navegador acá con un POST. Devuelve JSON: la página de
-   * "pago listo" es del frontend (día 5), el backend solo resuelve el commit.
+   * Webpay redirige el navegador acá con un POST. No devuelve JSON: quien pagó
+   * es una persona mirando la pantalla, así que se hace el commit y se la manda
+   * a la página de su reserva, que muestra en qué terminó todo.
+   *
+   * El resultado viaja como estado en la URL, no como dato de confianza: la
+   * página igual le pregunta a la API por el estado real de la reserva.
    */
   @Post('payments/webpay/return')
-  @ApiOperation({ summary: 'Retorno de Webpay: confirma el pago (idempotente)' })
-  async webpayReturn(@Body() dto: WebpayReturnDto): Promise<PaymentResultResponse> {
+  @Redirect()
+  @ApiOperation({ summary: 'Retorno de Webpay: confirma el pago y redirige al frontend' })
+  async webpayReturn(@Body() dto: WebpayReturnDto): Promise<RedirectResult> {
+    const webBaseUrl = this.config.getOrThrow<string>('WEB_BASE_URL');
+
+    // Sin token_ws solo puede ser una anulación del cliente: no hay nada que
+    // comitear y la reserva sigue PENDING hasta que expire sola.
     if (!dto.token_ws) {
-      // Sin token_ws solo puede ser una anulación del cliente: no hay commit.
-      throw new BadRequestException(
-        dto.TBK_TOKEN
-          ? 'El pago fue anulado en Webpay; la reserva sigue pendiente hasta expirar'
-          : 'Falta token_ws',
-      );
+      return { url: `${webBaseUrl}/pago/anulado` };
     }
 
-    return this.paymentsService.commit(dto.token_ws);
+    const result = await this.paymentsService.commit(dto.token_ws);
+
+    return {
+      url: `${webBaseUrl}/${result.slug}/reserva/${result.reservationId}`,
+    };
   }
 }

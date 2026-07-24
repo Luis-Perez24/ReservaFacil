@@ -18,6 +18,7 @@ const envValido = {
   TRANSBANK_API_KEY: 'd'.repeat(64),
   TRANSBANK_ENVIRONMENT: 'integration',
   TRANSBANK_RETURN_URL: 'http://localhost:3000/payments/webpay/return',
+  WEB_BASE_URL: 'http://localhost:4200',
 };
 
 describe('validateEnv', () => {

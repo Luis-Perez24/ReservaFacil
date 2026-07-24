@@ -38,8 +38,10 @@
     "@nestjs/jwt": "^11.0.2",
     "@nestjs/passport": "^11.0.5",
     "@nestjs/platform-express": "^11.1.28",
+    "@nestjs/platform-socket.io": "^11.1.28",
     "@nestjs/swagger": "^11.4.5",
     "@nestjs/typeorm": "^11.0.3",
+    "@nestjs/websockets": "^11.1.28",
     "@reservafacil/contracts": "workspace:*",
     "argon2": "^0.44.0",
     "class-transformer": "^0.5.1",
@@ -50,6 +52,7 @@
     "pg": "^8.22.0",
     "reflect-metadata": "^0.2.2",
     "rxjs": "^7.8.2",
+    "socket.io": "^4.8.3",
     "transbank-sdk": "^6.1.1",
     "typeorm": "^1.1.0"
   },

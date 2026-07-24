@@ -33,6 +33,8 @@ export interface InitPaymentResponse {
 /** Resultado del retorno de Webpay, ya procesado por el backend. */
 export interface PaymentResultResponse {
   reservationId: string;
+  /** Negocio de la reserva: con esto se arma la vuelta a su página pública. */
+  slug: string;
   buyOrder: string;
   paymentStatus: PaymentStatus;
   /** Estado de la reserva después del pago: CONFIRMED solo si el pago fue aprobado. */

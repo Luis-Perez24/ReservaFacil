@@ -72,6 +72,103 @@ img {
   outline-offset: 3px;
 }
 
+/**
+ * Piezas compartidas por las páginas públicas. Viven acá y no en cada
+ * componente porque son el mismo objeto en todas: si el botón cambia, cambia
+ * una vez.
+ */
+.page {
+  max-width: 46rem;
+  margin: 0 auto;
+  padding: 0 var(--space-6) var(--space-16);
+}
+
+/* Única superficie grande con el color del negocio: una regla, no un fondo.
+   Va de borde a borde de la ventana para leerse como identidad del negocio. */
+.page__rule {
+  display: block;
+  height: 4px;
+  width: 100vw;
+  margin-left: calc(50% - 50vw);
+  margin-bottom: var(--space-12);
+  background: var(--brand);
+}
+
+.notice {
+  color: var(--ink-soft);
+  padding-block: var(--space-8);
+}
+
+.notice--block {
+  padding-block: var(--space-16);
+}
+
+.button {
+  justify-self: start;
+  padding: var(--space-3) var(--space-6);
+  font: inherit;
+  font-weight: 650;
+  text-decoration: none;
+  color: var(--paper);
+  background: var(--ink);
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+}
+
+.button:hover:not(:disabled) {
+  opacity: 0.88;
+}
+
+.button:disabled {
+  opacity: 0.5;
+  cursor: default;
+}
+
+.button--ghost {
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.button--ghost:hover {
+  border-color: var(--brand);
+  opacity: 1;
+}
+
+.field {
+  display: grid;
+  gap: var(--space-2);
+}
+
+.field__label {
+  font-size: 0.875rem;
+  font-weight: 600;
+}
+
+.field__hint {
+  font-weight: 400;
+  color: var(--ink-soft);
+}
+
+.field__input {
+  padding: var(--space-3);
+  font: inherit;
+  color: inherit;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 8px;
+}
+
+.field__input:focus-visible {
+  border-color: var(--brand);
+}
+
+.field__error {
+  color: #b91c1c;
+  font-size: 0.875rem;
+}
+
 @media (prefers-reduced-motion: reduce) {
   *,
   *::before,

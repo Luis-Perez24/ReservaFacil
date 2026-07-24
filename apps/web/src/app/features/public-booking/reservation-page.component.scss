@@ -1,0 +1,64 @@
+/* `.page`, `.page__rule`, `.notice` y `.button` son compartidos y viven en
+   `styles.scss`: acá solo lo propio de la pantalla de resultado. */
+
+.result {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+  padding-top: var(--space-8);
+}
+
+.result__eyebrow {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.result__title {
+  font-size: clamp(1.875rem, 6vw, 2.75rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.05;
+  text-wrap: balance;
+}
+
+.result__text {
+  max-width: 46ch;
+  color: var(--ink-soft);
+}
+
+/* Los datos del turno como ficha, con la misma voz monoespaciada que la agenda. */
+.detail {
+  margin: var(--space-4) 0 0;
+  width: 100%;
+  max-width: 30rem;
+  border-top: 1px solid var(--line);
+}
+
+.detail__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) 0;
+  border-bottom: 1px solid var(--line);
+}
+
+.detail__row dt {
+  color: var(--ink-soft);
+  font-size: 0.875rem;
+}
+
+.detail__row dd {
+  margin: 0;
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9375rem;
+  text-align: right;
+}
+
+.detail + .result__text {
+  margin-top: var(--space-2);
+}

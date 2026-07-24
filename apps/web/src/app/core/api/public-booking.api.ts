@@ -1,6 +1,13 @@
 import { HttpClient } from '@angular/common/http';
 import { Injectable, inject } from '@angular/core';
-import type { PublicServiceResponse, PublicTenantResponse } from '@reservafacil/contracts';
+import type {
+  CreateReservationRequest,
+  InitPaymentResponse,
+  PublicAvailabilityResponse,
+  PublicServiceResponse,
+  PublicTenantResponse,
+  ReservationResponse,
+} from '@reservafacil/contracts';
 import { Observable } from 'rxjs';
 
 /**
@@ -22,6 +29,42 @@ export class PublicBookingApi {
   findServices(slug: string): Observable<PublicServiceResponse[]> {
     return this.http.get<PublicServiceResponse[]>(
       `/public/${encodeURIComponent(slug)}/services`,
+    );
+  }
+
+  /** Slots libres de un servicio para un día, en fecha local del negocio. */
+  findAvailability(
+    slug: string,
+    serviceId: string,
+    date: string,
+  ): Observable<PublicAvailabilityResponse> {
+    return this.http.get<PublicAvailabilityResponse>(
+      `/public/${encodeURIComponent(slug)}/availability`,
+      { params: { serviceId, date } },
+    );
+  }
+
+  createReservation(
+    slug: string,
+    body: CreateReservationRequest,
+  ): Observable<ReservationResponse> {
+    return this.http.post<ReservationResponse>(
+      `/public/${encodeURIComponent(slug)}/reservations`,
+      body,
+    );
+  }
+
+  findReservation(slug: string, id: string): Observable<ReservationResponse> {
+    return this.http.get<ReservationResponse>(
+      `/public/${encodeURIComponent(slug)}/reservations/${encodeURIComponent(id)}`,
+    );
+  }
+
+  /** Pide a Webpay la URL y el token; el navegador postea el token allá. */
+  initPayment(slug: string, reservationId: string): Observable<InitPaymentResponse> {
+    return this.http.post<InitPaymentResponse>(
+      `/public/${encodeURIComponent(slug)}/reservations/${encodeURIComponent(reservationId)}/payments`,
+      {},
     );
   }
 }

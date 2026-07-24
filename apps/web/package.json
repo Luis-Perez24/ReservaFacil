@@ -10,7 +10,6 @@
   },
   "private": true,
   "dependencies": {
-    "@reservafacil/contracts": "workspace:*",
     "@angular/animations": "^18.2.0",
     "@angular/common": "^18.2.0",
     "@angular/compiler": "^18.2.0",
@@ -19,7 +18,9 @@
     "@angular/platform-browser": "^18.2.0",
     "@angular/platform-browser-dynamic": "^18.2.0",
     "@angular/router": "^18.2.0",
+    "@reservafacil/contracts": "workspace:*",
     "rxjs": "~7.8.0",
+    "socket.io-client": "^4.8.3",
     "tslib": "^2.3.0",
     "zone.js": "~0.14.10"
   },

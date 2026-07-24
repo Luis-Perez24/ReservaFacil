@@ -117,11 +117,13 @@ export class PaymentsService {
         throw new NotFoundException('Pago no encontrado');
       }
 
+      const slug = await this.resolveSlug(payment.tenantId);
+
       // Ya resuelto por un commit anterior: se devuelve tal cual.
       if (payment.status !== PaymentStatus.INITIATED) {
         this.logger.log(`Commit repetido de ${payment.buyOrder}: se devuelve lo guardado`);
 
-        return this.toResult(payment, await this.resolveReservationStatus(payment));
+        return this.toResult(payment, slug, await this.resolveReservationStatus(payment));
       }
 
       const result = await this.webpay.commit(token);
@@ -137,7 +139,7 @@ export class PaymentsService {
         // Rechazo: la reserva sigue PENDING y expira sola liberando el slot.
         this.logger.warn(`Pago ${payment.buyOrder} rechazado (code ${result.responseCode})`);
 
-        return this.toResult(payment, ReservationStatus.PENDING, result);
+        return this.toResult(payment, slug, ReservationStatus.PENDING, result);
       }
 
       const reservation = await this.reservationsService.confirmWithinTransaction(
@@ -146,18 +148,20 @@ export class PaymentsService {
         payment.reservationId,
       );
 
-      return this.toResult(payment, reservation.status, result);
+      return this.toResult(payment, slug, reservation.status, result);
     });
   }
 
   /** El monto y el estado que ve el cliente, ya sin detalles internos. */
   private toResult(
     payment: Payment,
+    slug: string,
     reservationStatus: ReservationStatus,
     result?: WebpayCommitResult,
   ): PaymentResultResponse {
     return {
       reservationId: payment.reservationId,
+      slug,
       buyOrder: payment.buyOrder,
       paymentStatus: payment.status,
       reservationStatus,
@@ -167,6 +171,17 @@ export class PaymentsService {
         (payment.rawResponse?.authorization_code as string | undefined) ??
         null,
     };
+  }
+
+  /** El slug arma la vuelta del cliente a la página de su negocio. */
+  private async resolveSlug(tenantId: string): Promise<string> {
+    const tenant = await this.tenantsService.findById(tenantId);
+
+    if (!tenant) {
+      throw new ConflictException('El pago apunta a un negocio que ya no existe');
+    }
+
+    return tenant.slug;
   }
 
   /** Para el commit repetido: el estado real de la reserva, no uno asumido. */

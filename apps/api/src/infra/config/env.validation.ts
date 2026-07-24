@@ -103,6 +103,14 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   TRANSBANK_RETURN_URL!: string;
+
+  /**
+   * Raíz del frontend. Tras el commit, el retorno de Webpay redirige acá: quien
+   * pagó tiene que terminar en una página, no en un JSON.
+   */
+  @IsString()
+  @IsNotEmpty()
+  WEB_BASE_URL!: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {
