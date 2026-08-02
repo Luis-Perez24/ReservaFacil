@@ -72,6 +72,29 @@ services:
       retries: 10
       start_period: 20s
 
+  # Mismo codebase que `api`, misma imagen, distinto comando (`02-arquitectura.md`):
+  # consume la cola de recordatorios en vez de servir HTTP. Depende de que
+  # `api` esté healthy —no directo de postgres/redis— porque las migraciones
+  # las aplica el entrypoint de `api`; el worker no debe arrancar sobre un
+  # esquema a medio migrar.
+  worker:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      POSTGRES_PORT: '5432'
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      WORKER_MODE: 'true'
+    command: ['node', 'dist/main.worker.js']
+    depends_on:
+      api:
+        condition: service_healthy
+
   web:
     build:
       context: .
