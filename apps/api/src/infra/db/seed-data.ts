@@ -49,8 +49,14 @@ export interface SeedBusiness {
   exceptions: SeedException[];
 }
 
-/** La misma para todas las cuentas de demostración; va publicada en el README. */
-export const DEMO_PASSWORD = 'demo1234';
+/**
+ * La misma para todas las cuentas de demostración: la demo se publica con sus
+ * credenciales a la vista, así que no es un secreto que proteger.
+ *
+ * `SEED_PASSWORD` permite sembrar con otra sin tocar el código, para cuando la
+ * base sembrada no sea la de la demo pública.
+ */
+export const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? 'demo1234';
 
 const unsplash = (id: string): string => `https://images.unsplash.com/${id}?w=1920&q=80`;
 const portrait = (gender: 'men' | 'women', n: number): string =>

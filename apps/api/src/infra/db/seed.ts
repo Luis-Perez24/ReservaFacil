@@ -66,10 +66,17 @@ async function upsertClients(manager: EntityManager, passwordHash: string): Prom
   for (const client of DEMO_CLIENTS) {
     const existing = await repository.findOneBy({ email: client.email, tenantId: IsNull() });
 
+    // A una cuenta que ya existe no se le toca la contraseña. Si alguien se
+    // registró con este correo, reescribirle el hash con una clave publicada
+    // sería entregarle su cuenta a cualquiera que lea el README.
+    if (existing) {
+      clients.push(existing);
+      continue;
+    }
+
     clients.push(
       await repository.save(
         repository.create({
-          ...existing,
           tenantId: null,
           email: client.email,
           fullName: client.fullName,
@@ -195,7 +202,25 @@ async function seedBusiness(
   return reservations.length;
 }
 
+/**
+ * El seed borra negocios enteros —reservas, pagos y cuentas incluidos— y crea
+ * cuentas con una contraseña publicada. Contra la base de producción eso es una
+ * pérdida de datos y una puerta abierta, así que hay que pedirlo a propósito:
+ * `SEED_ALLOW_PRODUCTION=true`. Un despliegue distraído que arrastre el script
+ * se detiene acá.
+ */
+function assertSeedIsAllowed(): void {
+  if (process.env.NODE_ENV === 'production' && process.env.SEED_ALLOW_PRODUCTION !== 'true') {
+    throw new Error(
+      'El seed borra datos y crea cuentas con una contraseña conocida: en producción ' +
+        'hay que habilitarlo a mano con SEED_ALLOW_PRODUCTION=true',
+    );
+  }
+}
+
 export async function seedDemoData(source: DataSource): Promise<void> {
+  assertSeedIsAllowed();
+
   const passwordHash = await argon2.hash(DEMO_PASSWORD);
   const random = createRandom(RANDOM_SEED);
 
