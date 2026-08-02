@@ -1,0 +1,20 @@
+# Lo que nunca debe entrar al contexto de build: pesado, regenerable o secreto.
+**/node_modules
+**/dist
+.git
+**/*.log
+
+# Secretos: solo .env.example viaja (y ni siquiera se usa en el build).
+.env
+.env.*
+!.env.example
+
+# Material que no es del producto en ejecución.
+scratch
+.private
+.claude
+CLAUDE.md
+
+# Artefactos de test y cobertura.
+coverage
+**/coverage

@@ -1,0 +1,88 @@
+# Stack de producción para probar el build completo en local: las mismas
+# imágenes que irían a la VPS, comunicándose por la red de compose. No es el
+# despliegue real (eso es Coolify + Nginx + HTTPS sobre la VPS), sino la
+# verificación de que api y web construidos funcionan end-to-end sin el dev
+# server ni ts-node.
+#
+#   docker-compose -f docker-compose.prod.yml --env-file .env -p reservafacil-prod up --build
+#
+# La app queda en http://localhost:8080. La API no se expone al host: solo la
+# alcanza el web por la red interna, igual que en producción.
+
+services:
+  postgres:
+    image: postgres:16-alpine
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: ${POSTGRES_USER}
+      POSTGRES_PASSWORD: ${POSTGRES_PASSWORD}
+      POSTGRES_DB: ${POSTGRES_DB}
+    volumes:
+      - pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ['CMD-SHELL', 'pg_isready -U ${POSTGRES_USER} -d ${POSTGRES_DB}']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  redis:
+    image: redis:7-alpine
+    restart: unless-stopped
+    volumes:
+      - redisdata:/data
+    healthcheck:
+      test: ['CMD', 'redis-cli', 'ping']
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+  api:
+    build:
+      context: .
+      dockerfile: apps/api/Dockerfile
+    restart: unless-stopped
+    env_file: .env
+    environment:
+      # Dentro de la red de compose los servicios se alcanzan por su nombre,
+      # no por localhost. Estos overrides ganan sobre lo que traiga el .env.
+      NODE_ENV: production
+      POSTGRES_HOST: postgres
+      # Puerto INTERNO de postgres en la red de compose (5432), no el que el
+      # .env mapea al host para desarrollo. Mismo motivo para redis.
+      POSTGRES_PORT: '5432'
+      REDIS_HOST: redis
+      REDIS_PORT: '6379'
+      # Este servicio es el único que aplica migraciones al arrancar.
+      RUN_MIGRATIONS: 'true'
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_healthy
+    healthcheck:
+      # Sin curl en la imagen slim: node hace la sonda contra Swagger, que
+      # responde 200 solo si la app terminó de bootear.
+      test:
+        - CMD
+        - node
+        - -e
+        - "require('http').get('http://localhost:3000/docs',r=>process.exit(r.statusCode===200?0:1)).on('error',()=>process.exit(1))"
+      interval: 10s
+      timeout: 5s
+      retries: 10
+      start_period: 20s
+
+  web:
+    build:
+      context: .
+      dockerfile: apps/web/Dockerfile
+    restart: unless-stopped
+    ports:
+      - '8080:80'
+    depends_on:
+      api:
+        condition: service_healthy
+
+volumes:
+  pgdata:
+  redisdata:

@@ -9,6 +9,7 @@
     "start:prod": "node dist/main",
     "typecheck": "tsc --noEmit",
     "migration:run": "typeorm-ts-node-commonjs migration:run -d src/infra/db/data-source.ts",
+    "migration:run:prod": "typeorm migration:run -d dist/infra/db/data-source.js",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/infra/db/data-source.ts",
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/infra/db/data-source.ts",
     "test": "jest",
