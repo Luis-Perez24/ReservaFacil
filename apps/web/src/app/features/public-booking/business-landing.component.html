@@ -58,8 +58,13 @@
           <img class="hero__logo" [src]="logo" [alt]="negocio.name" />
         }
 
+        <!-- "Reservas en línea" y no "Abierto": la página toma horas a cualquier
+             hora, pero el local puede estar cerrado y el punto verde estaría
+             afirmando algo falso. -->
         @if (cityLabel(); as ciudad) {
-          <p class="hero__eyebrow"><span class="hero__dot" aria-hidden="true"></span>{{ ciudad }} · Abierto</p>
+          <p class="hero__eyebrow">
+            <span class="hero__dot" aria-hidden="true"></span>{{ ciudad }} · Reservas en línea
+          </p>
         }
 
         <h1 class="hero__name">{{ negocio.name }}</h1>
@@ -119,7 +124,9 @@
               <p class="footer__tagline">{{ lema }}</p>
             }
             @if (cityLabel(); as ciudad) {
-              <p class="footer__open"><span class="hero__dot" aria-hidden="true"></span>{{ ciudad }} · Abierto</p>
+              <p class="footer__open">
+                <span class="hero__dot" aria-hidden="true"></span>{{ ciudad }} · Reservas en línea
+              </p>
             }
           </div>
 
