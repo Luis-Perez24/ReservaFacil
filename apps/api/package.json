@@ -14,7 +14,8 @@
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/infra/db/data-source.ts",
     "test": "jest",
     "test:watch": "jest --watch",
-    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand"
+    "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
+    "test:load": "k6 run test/load/reservation-slot.load.js"
   },
   "jest": {
     "moduleFileExtensions": [
