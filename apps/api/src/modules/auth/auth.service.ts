@@ -26,6 +26,13 @@ interface RefreshPayload {
   sub: string;
 }
 
+/** Lo que `notifications` necesita para escribirle a un cliente. Sin `passwordHash` ni `role`. */
+export interface ClientContact {
+  fullName: string;
+  email: string;
+  phone: string | null;
+}
+
 @Injectable()
 export class AuthService {
   constructor(
@@ -134,6 +141,23 @@ export class AuthService {
     }
 
     return this.toAuthenticatedUser(user);
+  }
+
+  /**
+   * Para `notifications`: solo los datos de contacto, nada de credenciales.
+   * `notifications → auth` no está en la tabla de dependencias de
+   * `02-arquitectura.md` —el doc quedó corto ahí, un recordatorio necesita a
+   * quién escribirle— pero es lectura simple vía el servicio exportado, no un
+   * import de internals.
+   */
+  async findContact(userId: string): Promise<ClientContact | null> {
+    const user = await this.users.findOne({ where: { id: userId } });
+
+    if (!user) {
+      return null;
+    }
+
+    return { fullName: user.fullName, email: user.email, phone: user.phone };
   }
 
   private async findDashboardUser(dto: LoginDto): Promise<User | null> {

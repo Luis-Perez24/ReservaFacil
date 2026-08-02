@@ -3,6 +3,7 @@ import {
   IsEnum,
   IsInt,
   IsNotEmpty,
+  IsOptional,
   IsString,
   Max,
   Min,
@@ -111,6 +112,32 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   WEB_BASE_URL!: string;
+
+  // SMTP del canal de email de `notifications`. En desarrollo apunta a Mailpit
+  // (docker-compose, sin credenciales); en producción, a un proveedor real.
+  // El código del canal no cambia entre uno y otro, solo estas variables.
+  @IsString()
+  @IsNotEmpty()
+  SMTP_HOST!: string;
+
+  @Type(() => Number)
+  @IsInt()
+  @Min(1)
+  @Max(65535)
+  SMTP_PORT!: number;
+
+  /** Vacío para Mailpit, que no pide autenticación. */
+  @IsOptional()
+  @IsString()
+  SMTP_USER?: string;
+
+  @IsOptional()
+  @IsString()
+  SMTP_PASSWORD?: string;
+
+  @IsString()
+  @IsNotEmpty()
+  SMTP_FROM!: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

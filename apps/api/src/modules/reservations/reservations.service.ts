@@ -4,6 +4,7 @@ import {
   Injectable,
   NotFoundException,
 } from '@nestjs/common';
+import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
 import { ReservationStatus } from '@reservafacil/contracts';
 import { DateTime } from 'luxon';
@@ -20,6 +21,21 @@ import { assertTransition } from './reservation-state-machine';
 /** Retención del slot mientras el cliente paga. Ver regla #2 y `adr/0002`. */
 const HOLD_MINUTES = 10;
 
+/**
+ * Lo que `notifications` necesita para programar el recordatorio. Vive acá
+ * —no en `packages/contracts`— porque es un evento interno del backend, no
+ * un contrato que comparta con el frontend.
+ */
+export interface ReservationConfirmedEvent {
+  tenantId: string;
+  reservationId: string;
+  serviceId: string;
+  clientId: string;
+  startsAt: Date;
+}
+
+export const RESERVATION_CONFIRMED_EVENT = 'reservation.confirmed';
+
 @Injectable()
 export class ReservationsService {
   constructor(
@@ -29,6 +45,7 @@ export class ReservationsService {
     private readonly tenantsService: TenantsService,
     private readonly availabilityService: AvailabilityService,
     private readonly realtime: RealtimeGateway,
+    private readonly events: EventEmitter2,
   ) {}
 
   /**
@@ -232,7 +249,22 @@ export class ReservationsService {
     // Confirmada ya no hay retención que vencer: el slot es suyo.
     reservation.expiresAt = null;
 
-    return manager.save(reservation);
+    const saved = await manager.save(reservation);
+
+    // Mismo precedente que el aviso de tiempo real en create(): va al final,
+    // sin await, y solo en la transición real —el retorno idempotente de más
+    // arriba no vuelve a emitir—. Un listener asíncrono (notifications, para
+    // programar el recordatorio) que falle no puede tumbar un pago ya
+    // aprobado por Webpay.
+    this.events.emit(RESERVATION_CONFIRMED_EVENT, {
+      tenantId: saved.tenantId,
+      reservationId: saved.id,
+      serviceId: saved.serviceId,
+      clientId: saved.clientId,
+      startsAt: saved.startsAt,
+    } satisfies ReservationConfirmedEvent);
+
+    return saved;
   }
 
   private async assertSlotIsBookable(

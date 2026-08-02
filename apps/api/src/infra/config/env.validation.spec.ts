@@ -19,6 +19,9 @@ const envValido = {
   TRANSBANK_ENVIRONMENT: 'integration',
   TRANSBANK_RETURN_URL: 'http://localhost:3000/payments/webpay/return',
   WEB_BASE_URL: 'http://localhost:4200',
+  SMTP_HOST: 'localhost',
+  SMTP_PORT: '1025',
+  SMTP_FROM: 'ReservaFácil <no-reply@reservafacil.cl>',
 };
 
 describe('validateEnv', () => {
