@@ -1,0 +1,140 @@
+name: CI
+
+# Puerta de calidad antes de que algo llegue a main: tipos, tests (incluida la
+# concurrencia real contra postgres) y que las imágenes de producción compilen.
+# El deploy no vive acá: Coolify escucha el push a main y despliega por su
+# cuenta una vez que estos jobs pasan (webhook configurado en la VPS).
+
+on:
+  push:
+    branches: [main]
+  pull_request:
+
+# Un push nuevo sobre la misma rama cancela el run anterior: no gastar minutos
+# en validar un commit que ya quedó atrás.
+concurrency:
+  group: ci-${{ github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  api:
+    name: API — tipos, unit y e2e
+    runs-on: ubuntu-latest
+
+    # Postgres y Redis reales: los e2e de concurrencia necesitan FOR UPDATE de
+    # verdad, no un doble en memoria.
+    services:
+      postgres:
+        image: postgres:16-alpine
+        env:
+          POSTGRES_USER: reservafacil
+          POSTGRES_PASSWORD: reservafacil
+          POSTGRES_DB: reservafacil
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U reservafacil -d reservafacil"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+      redis:
+        image: redis:7-alpine
+        ports:
+          - 6379:6379
+        options: >-
+          --health-cmd "redis-cli ping"
+          --health-interval 5s
+          --health-timeout 5s
+          --health-retries 10
+
+    env:
+      NODE_ENV: test
+      PORT: '3000'
+      POSTGRES_HOST: localhost
+      POSTGRES_PORT: '5432'
+      POSTGRES_USER: reservafacil
+      POSTGRES_PASSWORD: reservafacil
+      POSTGRES_DB: reservafacil
+      REDIS_HOST: localhost
+      REDIS_PORT: '6379'
+      # Secretos de prueba: ≥32 chars y distintos entre sí, como exige la
+      # validación de entorno. No son secretos reales, solo satisfacen el contrato.
+      JWT_ACCESS_SECRET: ci-access-secret-0123456789-abcdefghij
+      JWT_ACCESS_TTL: 900s
+      JWT_REFRESH_SECRET: ci-refresh-secret-0123456789-abcdefghij
+      JWT_REFRESH_TTL: 7d
+      # Credenciales públicas del ambiente de integración de Webpay (vienen en el
+      # propio SDK): no hay nada secreto que ocultar acá.
+      TRANSBANK_COMMERCE_CODE: '597055555532'
+      TRANSBANK_API_KEY: 579B532A7440BB0C9079DED94D31EA1615BACEB56610332264630D42D0A36B1C
+      TRANSBANK_ENVIRONMENT: integration
+      TRANSBANK_RETURN_URL: http://localhost:3000/payments/webpay/return
+      WEB_BASE_URL: http://localhost:4200
+
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      # El postinstall del root compila @reservafacil/contracts, del que dependen
+      # el typecheck y los tests del api.
+      - run: pnpm install --frozen-lockfile
+
+      - name: Typecheck
+        run: pnpm --filter api typecheck
+
+      - name: Build
+        run: pnpm --filter api build
+
+      - name: Unit
+        run: pnpm --filter api test
+
+      # Los e2e corren contra <db>_test; el service de postgres solo crea la base
+      # principal, así que la de tests se crea acá.
+      - name: Crear base de datos de tests
+        run: PGPASSWORD=reservafacil psql -h localhost -U reservafacil -d reservafacil -c 'CREATE DATABASE reservafacil_test'
+
+      - name: E2E
+        run: pnpm --filter api test:e2e
+
+  web:
+    name: Web — build y unit
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: pnpm/action-setup@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+
+      - run: pnpm install --frozen-lockfile
+
+      - name: Build
+        run: pnpm --filter @reservafacil/web build
+
+      # ubuntu-latest trae Chrome y corre como usuario sin privilegios, así que
+      # ChromeHeadless funciona sin --no-sandbox.
+      - name: Unit
+        run: pnpm --filter @reservafacil/web test -- --watch=false --browsers=ChromeHeadless
+
+  docker:
+    name: Imágenes de producción
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      # Que los Dockerfiles construyan es parte del contrato: si el build de
+      # producción se rompe, no debe llegar a main.
+      - name: Build imagen API
+        run: docker build -f apps/api/Dockerfile -t reservafacil-api:ci .
+
+      - name: Build imagen Web
+        run: docker build -f apps/web/Dockerfile -t reservafacil-web:ci .
