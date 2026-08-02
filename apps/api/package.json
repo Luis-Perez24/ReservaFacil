@@ -12,6 +12,8 @@
     "migration:run:prod": "typeorm migration:run -d dist/infra/db/data-source.js",
     "migration:revert": "typeorm-ts-node-commonjs migration:revert -d src/infra/db/data-source.ts",
     "migration:show": "typeorm-ts-node-commonjs migration:show -d src/infra/db/data-source.ts",
+    "seed": "ts-node src/infra/db/seed.ts",
+    "seed:prod": "node dist/infra/db/seed.js",
     "test": "jest",
     "test:watch": "jest --watch",
     "test:e2e": "jest --config ./test/jest-e2e.json --runInBand",
