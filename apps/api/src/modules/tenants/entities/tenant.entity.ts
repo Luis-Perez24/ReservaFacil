@@ -6,9 +6,26 @@ import {
   UpdateDateColumn,
 } from 'typeorm';
 
+export interface TeamMember {
+  name: string;
+  role: string;
+  photoUrl: string | null;
+}
+
+/**
+ * Toda la personalización de la página pública en un jsonb: identidad visual y
+ * contenido de las secciones. jsonb (no columnas) para sumar campos sin migrar.
+ */
 export interface TenantBranding {
   logoUrl: string | null;
   primaryColor: string | null;
+  /** URL de la imagen de portada (storage externo). Opcional por negocio. */
+  coverImageUrl: string | null;
+  tagline: string | null;
+  about: string | null;
+  team: TeamMember[] | null;
+  address: string | null;
+  hours: string | null;
 }
 
 @Entity('tenants')

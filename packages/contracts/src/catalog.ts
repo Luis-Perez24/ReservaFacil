@@ -59,11 +59,42 @@ export interface CreateAvailabilityExceptionRequest {
   endTime?: string;
 }
 
-/** Identidad visual del negocio en su página pública. */
+/** Un integrante del equipo del negocio (barbero, médico, etc.). */
+export interface TeamMemberResponse {
+  name: string;
+  role: string;
+  /** Retrato (URL a storage externo); si es null, se muestra la inicial. */
+  photoUrl: string | null;
+}
+
+/**
+ * Personalización de la página pública del negocio. Va toda en un jsonb —lo
+ * visual y el contenido editorial de las secciones— para poder crecer sin
+ * migrar el esquema por cada campo nuevo. Todo es opcional: cada sección se
+ * dibuja solo si el negocio la llenó.
+ */
 export interface TenantBrandingResponse {
   logoUrl: string | null;
   /** Color de acento en hex (`#1d4ed8`); si es null, la página usa el suyo. */
   primaryColor: string | null;
+  /**
+   * Imagen de portada del negocio (URL a un storage externo, nunca un archivo
+   * del repo). La página la usa como hero; si es null, cae a un gradiente
+   * derivado del color de marca.
+   */
+  coverImageUrl: string | null;
+
+  // ── Contenido de las secciones ──────────────────────────────────────────
+  /** Lema breve para el hero de Inicio. */
+  tagline: string | null;
+  /** Descripción/historia del negocio, para la sección Nosotros. */
+  about: string | null;
+  /** El equipo que atiende. */
+  team: TeamMemberResponse[] | null;
+  /** Dirección física. */
+  address: string | null;
+  /** Horario de atención, en texto libre (puede traer varias líneas). */
+  hours: string | null;
 }
 
 /**
