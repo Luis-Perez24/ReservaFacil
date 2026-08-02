@@ -1,0 +1,503 @@
+/**
+ * Landing del negocio: Inicio (hero) y Nosotros, hiladas por una barra fija.
+ * El color del negocio (`--brand`) y su foto son lo único que cambia entre
+ * negocios; nunca hay texto directamente sobre la foto sin un velo que asegure
+ * el contraste.
+ */
+
+.site {
+  overflow-x: hidden;
+}
+
+/* ── Estados sin negocio ─────────────────────────────────────────────────────── */
+
+.site__status,
+.site__block {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 22vh var(--space-6) var(--space-16);
+  color: var(--ink-soft);
+}
+
+.site__block-title {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin-bottom: var(--space-3);
+}
+
+/* ── Barra de navegación fija ────────────────────────────────────────────────── */
+
+.nav {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-3) var(--space-6);
+  background: color-mix(in oklab, var(--surface) 82%, transparent);
+  backdrop-filter: blur(12px);
+  -webkit-backdrop-filter: blur(12px);
+  border-bottom: 1px solid var(--line);
+}
+
+.nav__brand {
+  font-family: var(--font-display);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  background: none;
+  border: 0;
+  padding: 0;
+  cursor: pointer;
+}
+
+.nav__links {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.nav__links button {
+  position: relative;
+  padding: var(--space-2) var(--space-3);
+  font: inherit;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+  background: none;
+  border: 0;
+  border-radius: 8px;
+  cursor: pointer;
+  transition: color 160ms var(--ease-out);
+}
+
+.nav__links button:hover {
+  color: var(--ink);
+}
+
+/* La sección donde estás: el enlace se enciende y una barrita de marca crece
+   bajo él. La barra se anima con transform (escala horizontal), no con width. */
+.nav__links button.is-active {
+  color: var(--ink);
+}
+
+.nav__links button::after {
+  content: '';
+  position: absolute;
+  left: var(--space-3);
+  right: var(--space-3);
+  bottom: 0;
+  height: 2px;
+  border-radius: 2px;
+  background: var(--brand);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform 220ms var(--ease-out);
+}
+
+.nav__links button.is-active::after {
+  transform: scaleX(1);
+}
+
+/* El CTA no lleva el color de marca de fondo (podría ser claro y tragarse el
+   texto): va oscuro, que contrasta siempre. */
+.nav__cta {
+  padding: var(--space-2) var(--space-4);
+  font-size: 0.9375rem;
+  font-weight: 650;
+  color: var(--paper);
+  background: var(--ink);
+  border-radius: 8px;
+  text-decoration: none;
+  transition: transform 140ms var(--ease-out), opacity 140ms var(--ease-out);
+}
+
+.nav__cta:hover {
+  opacity: 0.88;
+}
+
+.nav__cta:active {
+  transform: scale(0.97);
+}
+
+/* ── ① Inicio: hero a pantalla completa ──────────────────────────────────────── */
+
+.hero {
+  position: relative;
+  overflow: hidden;
+  display: flex;
+  align-items: flex-end;
+  min-height: calc(100vh - 3.5rem);
+  padding: var(--space-16) var(--space-6);
+  background:
+    radial-gradient(120% 120% at 15% 0%, color-mix(in oklab, var(--brand) 55%, #000) 0%, #14100e 72%);
+  color: #fff;
+  isolation: isolate;
+}
+
+/* En desktop el contenido no va pegado al borde: gana un margen izquierdo que
+   crece con la ventana, para que respire. */
+@media (min-width: 48rem) {
+  .hero {
+    padding-inline: clamp(var(--space-12), 8vw, calc(var(--space-16) * 2.5));
+  }
+}
+
+/* Más alta que el hero: el parallax la desplaza sin descubrir un borde. Entra
+   con un fundido (solo opacity) para no pelear con el transform del parallax. */
+.hero__photo {
+  position: absolute;
+  top: -15%;
+  left: 0;
+  width: 100%;
+  height: 130%;
+  object-fit: cover;
+  z-index: -2;
+  will-change: transform;
+  animation: hero-fade 1000ms var(--ease-out) both;
+}
+
+.hero__scrim {
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background:
+    linear-gradient(180deg, color-mix(in oklab, var(--brand) 28%, transparent) 0%, transparent 34%),
+    linear-gradient(0deg, rgba(10, 8, 7, 0.9) 0%, rgba(10, 8, 7, 0.3) 52%, rgba(10, 8, 7, 0.1) 100%);
+}
+
+.hero__content {
+  position: relative;
+  max-width: 40rem;
+  animation: hero-rise 700ms var(--ease-out) both;
+}
+
+.hero__logo {
+  height: 2.75rem;
+  width: auto;
+  margin-bottom: var(--space-6);
+}
+
+.hero__eyebrow {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-bottom: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.85);
+}
+
+.hero__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: #48d18a;
+  animation: pulse 2.4s ease-out infinite;
+}
+
+.hero__name {
+  font-family: var(--font-display);
+  font-size: clamp(2.75rem, 8vw, 5rem);
+  font-weight: 750;
+  letter-spacing: -0.025em;
+  line-height: 0.94;
+  text-wrap: balance;
+}
+
+.hero__tagline {
+  margin-top: var(--space-4);
+  max-width: 32ch;
+  font-size: clamp(1.125rem, 2.5vw, 1.375rem);
+  color: rgba(255, 255, 255, 0.9);
+  text-wrap: balance;
+}
+
+.hero__cta {
+  display: inline-block;
+  margin-top: var(--space-8);
+  padding: var(--space-4) var(--space-8);
+  font-size: 1.0625rem;
+  color: var(--ink);
+  background: #fff;
+  text-decoration: none;
+  transition:
+    transform 200ms var(--ease-out),
+    background 220ms var(--ease-out),
+    color 220ms var(--ease-out),
+    box-shadow 220ms var(--ease-out);
+}
+
+/* En hover el botón revela el color del negocio —oscurecido con tinta para que
+   el texto blanco contraste sea cual sea el hex— y se enciende con un resplandor
+   de marca. */
+.hero__cta:hover {
+  transform: translateY(-2px);
+  color: #fff;
+  background: color-mix(in oklab, var(--brand) 86%, #17120f);
+  box-shadow: 0 14px 34px -12px color-mix(in oklab, var(--brand) 75%, transparent);
+}
+
+/* ── Encabezado de sección ───────────────────────────────────────────────────── */
+
+.section__head {
+  margin-bottom: var(--space-12);
+}
+
+.section__kicker {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.section__title {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: clamp(1.875rem, 4vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+/* ── ② Nosotros ──────────────────────────────────────────────────────────────── */
+
+.nosotros {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: var(--space-16) var(--space-6) calc(var(--space-16) * 1.5);
+}
+
+.about {
+  max-width: 44rem;
+  display: grid;
+  gap: var(--space-4);
+  font-size: 1.125rem;
+  line-height: 1.65;
+  color: var(--ink-soft);
+}
+
+.team {
+  margin-top: var(--space-16);
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(13rem, 1fr));
+  gap: var(--space-8);
+}
+
+.member {
+  text-align: center;
+}
+
+.member__photo {
+  aspect-ratio: 1;
+  margin-bottom: var(--space-4);
+  border-radius: 16px;
+  overflow: hidden;
+  background: var(--mist);
+  display: grid;
+  place-items: center;
+  transition:
+    transform 320ms var(--ease-out),
+    box-shadow 320ms var(--ease-out);
+}
+
+.member__photo img {
+  width: 100%;
+  height: 100%;
+  object-fit: cover;
+  /* El zoom vive en la imagen; el recorte redondeado la contiene (overflow). */
+  transition: transform 480ms var(--ease-out);
+}
+
+/* Solo con mouse: la tarjeta se eleva con una sombra teñida de marca y la foto
+   hace un zoom lento por dentro del marco. */
+@media (hover: hover) and (pointer: fine) {
+  .member:hover .member__photo {
+    transform: translateY(-6px);
+    box-shadow: 0 26px 50px -20px color-mix(in oklab, var(--brand) 60%, rgba(0, 0, 0, 0.55));
+  }
+
+  .member:hover .member__photo img {
+    transform: scale(1.08);
+  }
+}
+
+.member__initial {
+  font-family: var(--font-display);
+  font-size: 3rem;
+  font-weight: 700;
+  color: var(--brand);
+}
+
+.member__name {
+  font-size: 1.1875rem;
+  font-weight: 650;
+  letter-spacing: -0.01em;
+}
+
+.member__role {
+  margin-top: var(--space-1);
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+/* ── Footer: cierre del sitio, en columnas para no dejar aire muerto ─────────── */
+
+.footer {
+  padding: calc(var(--space-16) * 1.15) var(--space-6) var(--space-12);
+  background: linear-gradient(160deg, color-mix(in oklab, var(--brand) 42%, #17120f), #14100e);
+  color: #fff;
+}
+
+.footer__inner {
+  max-width: 68rem;
+  margin: 0 auto;
+}
+
+.footer__cols {
+  display: grid;
+  gap: var(--space-12);
+  padding-bottom: var(--space-12);
+  border-bottom: 1px solid rgba(255, 255, 255, 0.12);
+}
+
+@media (min-width: 48rem) {
+  .footer__cols {
+    grid-template-columns: 1.5fr 1fr 1.2fr;
+    gap: var(--space-16);
+  }
+}
+
+.footer__name {
+  font-family: var(--font-display);
+  font-size: clamp(1.75rem, 4vw, 2.5rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
+}
+
+.footer__tagline {
+  margin-top: var(--space-3);
+  max-width: 30ch;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.footer__open {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  margin-top: var(--space-4);
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.footer__col {
+  display: grid;
+  gap: var(--space-3);
+  align-content: start;
+}
+
+.footer__col-title {
+  margin-bottom: var(--space-2);
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.5);
+}
+
+.footer__col button,
+.footer__col a {
+  justify-self: start;
+  padding: 0;
+  font: inherit;
+  color: rgba(255, 255, 255, 0.85);
+  background: none;
+  border: 0;
+  text-align: left;
+  text-decoration: none;
+  cursor: pointer;
+  transition: color 160ms var(--ease-out);
+}
+
+.footer__col button:hover,
+.footer__col a:hover {
+  color: #fff;
+}
+
+.footer__line {
+  color: rgba(255, 255, 255, 0.75);
+}
+
+.footer__hours {
+  white-space: pre-line;
+  line-height: 1.7;
+}
+
+.footer__bar {
+  display: flex;
+  flex-wrap: wrap;
+  justify-content: space-between;
+  gap: var(--space-3);
+  padding-top: var(--space-8);
+}
+
+.footer__credit {
+  font-size: 0.9375rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.footer__credit strong {
+  color: #fff;
+  font-weight: 700;
+}
+
+.footer__note {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────────── */
+
+@keyframes hero-fade {
+  from {
+    opacity: 0;
+  }
+  to {
+    opacity: 1;
+  }
+}
+
+@keyframes hero-rise {
+  from {
+    opacity: 0;
+    transform: translateY(10px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes pulse {
+  0% {
+    box-shadow: 0 0 0 0 rgba(72, 209, 138, 0.55);
+  }
+  70% {
+    box-shadow: 0 0 0 7px rgba(72, 209, 138, 0);
+  }
+  100% {
+    box-shadow: 0 0 0 0 rgba(72, 209, 138, 0);
+  }
+}

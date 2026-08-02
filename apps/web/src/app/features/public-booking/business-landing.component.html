@@ -1,0 +1,155 @@
+<div class="site" [style.--brand]="brandColor()">
+  @switch (status()) {
+    @case ('loading') {
+      <p class="site__status" role="status">Cargando el negocio…</p>
+    }
+
+    @case ('not-found') {
+      <section class="site__block">
+        <h1 class="site__block-title">Este negocio no existe</h1>
+        <p>Revisa el enlace: puede tener un error de escritura o el negocio ya no está publicado.</p>
+      </section>
+    }
+
+    @case ('error') {
+      <section class="site__block">
+        <h1 class="site__block-title">No pudimos cargar el negocio</h1>
+        <p>Hubo un problema de conexión. Vuelve a intentar en unos segundos.</p>
+      </section>
+    }
+  }
+
+  @if (tenant(); as negocio) {
+    <!-- Barra fija: los enlaces bajan por la página; Reservar salta a su flujo. -->
+    <nav class="nav">
+      <button class="nav__brand" type="button" (click)="scrollToSection('inicio')">
+        {{ negocio.name }}
+      </button>
+      <div class="nav__links">
+        <button
+          type="button"
+          [class.is-active]="active() === 'inicio'"
+          (click)="scrollToSection('inicio')"
+        >
+          Inicio
+        </button>
+        @if (hasAbout()) {
+          <button
+            type="button"
+            [class.is-active]="active() === 'nosotros'"
+            (click)="scrollToSection('nosotros')"
+          >
+            Nosotros
+          </button>
+        }
+        <a class="nav__cta" [routerLink]="['reservar']">Reservar</a>
+      </div>
+    </nav>
+
+    <!-- ① Inicio: la cara del negocio. -->
+    <section id="inicio" class="hero" [class.hero--photo]="coverUrl()">
+      @if (coverUrl(); as cover) {
+        <img class="hero__photo" [src]="cover" alt="" aria-hidden="true" [appParallax]="0.12" />
+      }
+      <span class="hero__scrim" aria-hidden="true"></span>
+
+      <div class="hero__content">
+        @if (logoUrl(); as logo) {
+          <img class="hero__logo" [src]="logo" [alt]="negocio.name" />
+        }
+
+        @if (cityLabel(); as ciudad) {
+          <p class="hero__eyebrow"><span class="hero__dot" aria-hidden="true"></span>{{ ciudad }} · Abierto</p>
+        }
+
+        <h1 class="hero__name">{{ negocio.name }}</h1>
+
+        @if (tagline(); as lema) {
+          <p class="hero__tagline">{{ lema }}</p>
+        }
+
+        <a class="button hero__cta" [routerLink]="['reservar']">Reservar una hora</a>
+      </div>
+    </section>
+
+    <!-- ② Nosotros. -->
+    @if (hasAbout()) {
+      <section id="nosotros" class="nosotros">
+        <header class="section__head" [appReveal]="0">
+          <span class="section__kicker">Nosotros</span>
+          <h2 class="section__title">Quiénes somos</h2>
+        </header>
+
+        @if (aboutParagraphs().length) {
+          <div class="about" [appReveal]="80">
+            @for (parrafo of aboutParagraphs(); track $index) {
+              <p>{{ parrafo }}</p>
+            }
+          </div>
+        }
+
+        @if (team().length) {
+          <div class="team">
+            @for (miembro of team(); track miembro.name; let i = $index) {
+              <article class="member" [appReveal]="i * 90">
+                <div class="member__photo">
+                  @if (miembro.photoUrl) {
+                    <img [src]="miembro.photoUrl" [alt]="miembro.name" />
+                  } @else {
+                    <span class="member__initial" aria-hidden="true">{{ miembro.name.charAt(0) }}</span>
+                  }
+                </div>
+                <h3 class="member__name">{{ miembro.name }}</h3>
+                <p class="member__role">{{ miembro.role }}</p>
+              </article>
+            }
+          </div>
+        }
+
+      </section>
+    }
+
+    <!-- Cierre del sitio. -->
+    <footer class="footer">
+      <div class="footer__inner">
+        <div class="footer__cols">
+          <div class="footer__brand">
+            <p class="footer__name">{{ negocio.name }}</p>
+            @if (tagline(); as lema) {
+              <p class="footer__tagline">{{ lema }}</p>
+            }
+            @if (cityLabel(); as ciudad) {
+              <p class="footer__open"><span class="hero__dot" aria-hidden="true"></span>{{ ciudad }} · Abierto</p>
+            }
+          </div>
+
+          <nav class="footer__col">
+            <h3 class="footer__col-title">Explorar</h3>
+            <button type="button" (click)="scrollToSection('inicio')">Inicio</button>
+            @if (hasAbout()) {
+              <button type="button" (click)="scrollToSection('nosotros')">Nosotros</button>
+            }
+            <a [routerLink]="['reservar']">Reservar una hora</a>
+          </nav>
+
+          @if (address() || hours()) {
+            <div class="footer__col">
+              <h3 class="footer__col-title">Visítanos</h3>
+              @if (address(); as a) {
+                <p class="footer__line">{{ a }}</p>
+              }
+              @if (hours(); as h) {
+                <p class="footer__line footer__hours">{{ h }}</p>
+              }
+            </div>
+          }
+        </div>
+
+        <div class="footer__bar">
+          <p class="footer__credit">Reservas con <strong>ReservaFácil</strong></p>
+          <p class="footer__note">Hecho en Chile</p>
+        </div>
+      </div>
+    </footer>
+  }
+</div>

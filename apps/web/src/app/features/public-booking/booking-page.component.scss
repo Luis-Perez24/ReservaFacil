@@ -1,0 +1,423 @@
+/**
+ * Página de reserva: foco total en el flujo. El color del negocio (`--brand`) es
+ * lo único que cambia entre negocios. El horario elegido se marca con el color
+ * de marca en bordes y realces, nunca rellenando el fondo bajo el texto.
+ */
+
+.booking {
+  min-height: 100vh;
+}
+
+/* ── Estados sin negocio ─────────────────────────────────────────────────────── */
+
+.booking__status,
+.booking__block {
+  max-width: 34rem;
+  margin: 0 auto;
+  padding: 22vh var(--space-6) var(--space-16);
+  color: var(--ink-soft);
+}
+
+.booking__block-title {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin-bottom: var(--space-3);
+}
+
+/* ── Cabecera: volver al negocio ─────────────────────────────────────────────── */
+
+.topbar {
+  padding: var(--space-4) var(--space-6);
+  border-bottom: 1px solid var(--line);
+}
+
+.topbar__back {
+  font-size: 0.9375rem;
+  font-weight: 600;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition: color 160ms var(--ease-out);
+}
+
+.topbar__back:hover {
+  color: var(--brand);
+}
+
+/* ── Encabezado de la sección ────────────────────────────────────────────────── */
+
+.section__head {
+  margin-bottom: var(--space-12);
+}
+
+.section__kicker {
+  font-family: var(--font-mono);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: var(--brand);
+}
+
+.section__title {
+  margin-top: var(--space-2);
+  font-family: var(--font-display);
+  font-size: clamp(1.875rem, 4vw, 2.75rem);
+  font-weight: 700;
+  letter-spacing: -0.02em;
+  line-height: 1.02;
+}
+
+/* ── Reserva ─────────────────────────────────────────────────────────────────── */
+
+.reserva {
+  max-width: 68rem;
+  margin: 0 auto;
+  padding: var(--space-16) var(--space-6);
+}
+
+.reserva__grid {
+  display: grid;
+  gap: var(--space-12);
+}
+
+@media (min-width: 60rem) {
+  .reserva__grid {
+    grid-template-columns: 20rem minmax(0, 1fr);
+    align-items: start;
+    gap: var(--space-16);
+  }
+}
+
+.reserva__aside {
+  order: -1;
+}
+
+@media (min-width: 60rem) {
+  .reserva__aside {
+    position: sticky;
+    top: var(--space-8);
+  }
+}
+
+.ticket {
+  margin: 0;
+  padding: var(--space-6);
+  border-radius: 16px;
+  background: linear-gradient(155deg, color-mix(in oklab, var(--brand) 50%, #17120f), #17120f);
+  color: #fff;
+  display: grid;
+  gap: var(--space-3);
+  box-shadow: 0 18px 40px -24px rgba(0, 0, 0, 0.55);
+}
+
+.ticket__label {
+  font-family: var(--font-mono);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.22em;
+  text-transform: uppercase;
+  color: rgba(255, 255, 255, 0.7);
+}
+
+.ticket__row {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.ticket__row dt {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.6);
+}
+
+.ticket__row dd {
+  margin: 0;
+  font-size: 0.9375rem;
+  font-weight: 600;
+  text-align: right;
+}
+
+.ticket__pop {
+  display: inline-block;
+  animation: ticket-pop 340ms var(--ease-spring) both;
+}
+
+.ticket__pending {
+  font-weight: 400;
+  color: rgba(255, 255, 255, 0.45);
+}
+
+.ticket__row--total {
+  margin-top: var(--space-1);
+  padding-top: var(--space-3);
+  border-top: 1px dashed rgba(255, 255, 255, 0.22);
+}
+
+.ticket__row--total dd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+/* ── Pasos ───────────────────────────────────────────────────────────────────── */
+
+.step + .step {
+  margin-top: var(--space-12);
+}
+
+.step__title {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-3);
+  font-size: 1.0625rem;
+  font-weight: 700;
+  letter-spacing: -0.01em;
+  padding-bottom: var(--space-4);
+  border-bottom: 1px solid var(--line);
+}
+
+.step__num {
+  font-family: var(--font-mono);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--brand);
+}
+
+.agenda__list {
+  list-style: none;
+  margin: var(--space-2) 0 0;
+  padding: 0;
+}
+
+.entry {
+  position: relative;
+  border-bottom: 1px solid var(--line);
+  animation: entry-rise 0.45s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 55ms);
+}
+
+.entry:last-child {
+  border-bottom: 0;
+}
+
+.entry::before {
+  content: '';
+  position: absolute;
+  left: 5px;
+  top: calc(var(--space-6) + 1.2em);
+  bottom: 0;
+  width: 1px;
+  background: var(--line);
+}
+
+.entry:last-child::before {
+  display: none;
+}
+
+.entry__mark {
+  position: absolute;
+  left: 0;
+  top: calc(var(--space-6) + 0.55em);
+  width: 11px;
+  height: 11px;
+  border-radius: 50%;
+  background: var(--surface);
+  border: 2px solid var(--brand);
+  transition: transform 200ms var(--ease-spring), box-shadow 200ms var(--ease-out);
+}
+
+.entry__button {
+  width: 100%;
+  display: grid;
+  grid-template-columns: 1fr auto;
+  align-items: center;
+  gap: var(--space-4);
+  padding: var(--space-6) var(--space-3) var(--space-6) var(--space-8);
+  background: none;
+  border: 0;
+  border-radius: 10px;
+  font: inherit;
+  color: inherit;
+  text-align: left;
+  cursor: pointer;
+  transition: background 180ms var(--ease-out), transform 120ms var(--ease-out);
+}
+
+.entry__button:hover {
+  background: var(--mist);
+}
+
+.entry__button:active {
+  transform: scale(0.99);
+}
+
+.entry__button--active {
+  background: var(--mist);
+}
+
+.entry:has(.entry__button--active) .entry__mark {
+  background: var(--brand);
+  transform: scale(1.25);
+  box-shadow: 0 0 0 4px color-mix(in oklab, var(--brand) 18%, transparent);
+}
+
+.entry__name {
+  display: block;
+  font-size: 1.3125rem;
+  font-weight: 650;
+  letter-spacing: -0.015em;
+  line-height: 1.2;
+}
+
+.entry__price {
+  display: block;
+  margin-top: var(--space-2);
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.9375rem;
+  color: var(--ink-soft);
+}
+
+.entry__duration {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 0.8125rem;
+  color: var(--ink-soft);
+  white-space: nowrap;
+  padding: var(--space-1) var(--space-3);
+  background: var(--mist);
+  border-radius: 999px;
+}
+
+.field--date {
+  margin-top: var(--space-6);
+  max-width: 16rem;
+}
+
+.slots {
+  list-style: none;
+  margin: var(--space-6) 0 0;
+  padding: 0;
+  display: grid;
+  grid-template-columns: repeat(auto-fill, minmax(5rem, 1fr));
+  gap: var(--space-3);
+}
+
+.slots > li {
+  animation: entry-rise 0.35s var(--ease-out) both;
+  animation-delay: calc(var(--i, 0) * 28ms);
+}
+
+.slot {
+  position: relative;
+  z-index: 0;
+  overflow: hidden;
+  width: 100%;
+  padding: var(--space-3) var(--space-2);
+  font-family: var(--font-display);
+  font-variant-numeric: tabular-nums;
+  font-weight: 550;
+  font-size: 1.0625rem;
+  letter-spacing: -0.01em;
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 10px;
+  cursor: pointer;
+  transition:
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out),
+    transform 140ms var(--ease-out);
+}
+
+.slot::before {
+  content: '';
+  position: absolute;
+  inset: 0;
+  z-index: -1;
+  background: color-mix(in oklab, var(--brand) 13%, transparent);
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path 300ms var(--ease-out);
+}
+
+.slot--active::before {
+  clip-path: inset(0 0 0 0);
+}
+
+@media (hover: hover) and (pointer: fine) {
+  .slot:hover {
+    border-color: var(--brand);
+    transform: translateY(-2px);
+    box-shadow: 0 6px 16px -8px color-mix(in oklab, var(--brand) 60%, transparent);
+  }
+}
+
+.slot:active {
+  transform: scale(0.97);
+}
+
+.slot--active {
+  border-color: var(--brand);
+  box-shadow: inset 0 0 0 2px var(--brand);
+  font-weight: 700;
+}
+
+.form {
+  display: grid;
+  gap: var(--space-6);
+  margin-top: var(--space-6);
+  max-width: 26rem;
+}
+
+.hold {
+  display: grid;
+  gap: var(--space-4);
+  justify-items: start;
+}
+
+.hold__title {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 700;
+  letter-spacing: -0.015em;
+}
+
+.hold__text {
+  max-width: 40ch;
+  color: var(--ink-soft);
+}
+
+.hold__timer {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+/* ── Keyframes ───────────────────────────────────────────────────────────────── */
+
+@keyframes entry-rise {
+  from {
+    opacity: 0;
+    transform: translateY(6px);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@keyframes ticket-pop {
+  from {
+    opacity: 0;
+    transform: translateY(5px) scale(0.96);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}

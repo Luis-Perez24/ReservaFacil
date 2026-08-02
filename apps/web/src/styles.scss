@@ -6,14 +6,35 @@
  * hex desde la base y el contraste sería impredecible—: va en reglas, marcas y
  * bordes, donde un color claro u oscuro se ve bien igual.
  */
+
+/* Bricolage Grotesque (OFL): la única fuente propia. Self-hosted —un woff2
+   variable, sin CDN ni requests externos— y solo para el nombre del negocio y
+   las horas; el cuerpo sigue con el stack del sistema. `swap` para que el texto
+   se lea de inmediato con la fuente de respaldo mientras carga la display. */
+@font-face {
+  font-family: 'Bricolage Grotesque';
+  font-style: normal;
+  font-weight: 400 800;
+  font-display: swap;
+  src: url('/fonts/bricolage-grotesque.woff2') format('woff2');
+}
+
 :root {
   --brand: #1d4ed8;
 
-  --ink: #14161a;
-  --ink-soft: #5b6472;
+  /* Neutros cálidos: la página deja de ser blanco clínico y gana temperatura
+     sin pelear con ningún color de marca (los neutros son casi acromáticos). */
+  --ink: #1a1613;
+  --ink-soft: #6b645c;
   --paper: #ffffff;
-  --mist: #f4f6f9;
-  --line: #dde2e9;
+  --surface: #f6f3ee;
+  --mist: #efeae2;
+  --line: #e4ddd3;
+
+  /* Curvas fuertes: las de CSS por defecto son flojas. `--ease-out` para
+     entradas y respuestas; `--ease-spring` para el rebote sutil del turno. */
+  --ease-out: cubic-bezier(0.23, 1, 0.32, 1);
+  --ease-spring: cubic-bezier(0.34, 1.4, 0.64, 1);
 
   --space-1: 0.25rem;
   --space-2: 0.5rem;
@@ -29,6 +50,9 @@
   --font-sans:
     system-ui, -apple-system, 'Segoe UI', Roboto, 'Helvetica Neue', Arial, sans-serif;
   --font-mono: ui-monospace, SFMono-Regular, 'SF Mono', Menlo, Consolas, monospace;
+  /* Display propia con respaldo al sistema: si el woff2 aún no cargó, el nombre
+     igual se ve (con la sans), nunca en blanco. */
+  --font-display: 'Bricolage Grotesque', var(--font-sans);
 
   color-scheme: light;
 }
@@ -46,12 +70,28 @@ body {
 }
 
 body {
-  background: var(--paper);
+  background: var(--surface);
   color: var(--ink);
   font-family: var(--font-sans);
   font-size: 1rem;
   line-height: 1.55;
   -webkit-font-smoothing: antialiased;
+}
+
+/* El diseño se pensó para el celular; en un monitor el texto de 16px queda
+   chico y sobra aire. Como casi todo está en rem (relativo a <html>), subir el
+   tamaño raíz en pantallas grandes agranda texto y espacios a la vez, sin tocar
+   regla por regla. */
+@media (min-width: 64rem) {
+  :root {
+    font-size: 17px;
+  }
+}
+
+@media (min-width: 100rem) {
+  :root {
+    font-size: 18px;
+  }
 }
 
 h1,
@@ -77,30 +117,9 @@ img {
  * componente porque son el mismo objeto en todas: si el botón cambia, cambia
  * una vez.
  */
-.page {
-  max-width: 46rem;
-  margin: 0 auto;
-  padding: 0 var(--space-6) var(--space-16);
-}
-
-/* Única superficie grande con el color del negocio: una regla, no un fondo.
-   Va de borde a borde de la ventana para leerse como identidad del negocio. */
-.page__rule {
-  display: block;
-  height: 4px;
-  width: 100vw;
-  margin-left: calc(50% - 50vw);
-  margin-bottom: var(--space-12);
-  background: var(--brand);
-}
-
 .notice {
   color: var(--ink-soft);
   padding-block: var(--space-8);
-}
-
-.notice--block {
-  padding-block: var(--space-16);
 }
 
 .button {
@@ -114,10 +133,16 @@ img {
   border: 0;
   border-radius: 8px;
   cursor: pointer;
+  transition: transform 140ms var(--ease-out), opacity 140ms var(--ease-out);
 }
 
 .button:hover:not(:disabled) {
   opacity: 0.88;
+}
+
+/* Feedback de presión: el botón se hunde un pelo, confirmando el toque. */
+.button:active:not(:disabled) {
+  transform: scale(0.97);
 }
 
 .button:disabled {
@@ -167,6 +192,50 @@ img {
 .field__error {
   color: #b91c1c;
   font-size: 0.875rem;
+}
+
+/* Spinner de carga para botones ocupados. Gira rápido a propósito: un giro
+   veloz hace percibir la espera más corta de lo que es. Hereda el color del
+   texto del botón, así sirve sobre fondo oscuro o claro. */
+.spinner {
+  display: inline-block;
+  width: 0.9em;
+  height: 0.9em;
+  margin-right: 0.1em;
+  vertical-align: -0.12em;
+  border: 2px solid color-mix(in oklab, currentColor 28%, transparent);
+  border-top-color: currentColor;
+  border-radius: 50%;
+  animation: spin 0.6s linear infinite;
+}
+
+@keyframes spin {
+  to {
+    transform: rotate(360deg);
+  }
+}
+
+/* Scroll-reveal: el elemento nace corrido y transparente; la directiva
+   RevealOnScroll le pone `is-visible` cuando entra en pantalla. */
+.reveal {
+  opacity: 0;
+  transform: translateY(18px);
+  transition:
+    opacity 650ms var(--ease-out),
+    transform 650ms var(--ease-out);
+}
+
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .reveal {
+    opacity: 1;
+    transform: none;
+    transition: none;
+  }
 }
 
 @media (prefers-reduced-motion: reduce) {

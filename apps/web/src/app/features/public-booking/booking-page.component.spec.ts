@@ -1,5 +1,6 @@
 import { HttpErrorResponse } from '@angular/common/http';
 import { ComponentFixture, TestBed } from '@angular/core/testing';
+import { provideRouter } from '@angular/router';
 import type {
   PublicAvailabilityResponse,
   PublicServiceResponse,
@@ -11,13 +12,22 @@ import { EMPTY, Observable, of, throwError } from 'rxjs';
 
 import { PublicBookingApi } from '../../core/api/public-booking.api';
 import { RealtimeService } from '../../core/realtime/realtime.service';
-import { PublicBookingPageComponent } from './public-booking-page.component';
+import { BookingPageComponent } from './booking-page.component';
 
 const NEGOCIO: PublicTenantResponse = {
   name: 'Barbería Demo',
   slug: 'barberia-demo',
   timezone: 'America/Santiago',
-  branding: { logoUrl: null, primaryColor: '#c2410c' },
+  branding: {
+    logoUrl: null,
+    primaryColor: '#c2410c',
+    coverImageUrl: null,
+    tagline: null,
+    about: null,
+    team: null,
+    address: null,
+    hours: null,
+  },
 };
 
 const SERVICIOS: PublicServiceResponse[] = [
@@ -80,8 +90,8 @@ class RealtimeDoble {
   }
 }
 
-describe('PublicBookingPageComponent', () => {
-  let fixture: ComponentFixture<PublicBookingPageComponent>;
+describe('BookingPageComponent', () => {
+  let fixture: ComponentFixture<BookingPageComponent>;
   let api: ApiDoble;
 
   /**
@@ -90,7 +100,7 @@ describe('PublicBookingPageComponent', () => {
    * de "cargando".
    */
   async function montar(slug = 'barberia-demo'): Promise<HTMLElement> {
-    fixture = TestBed.createComponent(PublicBookingPageComponent);
+    fixture = TestBed.createComponent(BookingPageComponent);
     fixture.componentRef.setInput('slug', slug);
     fixture.detectChanges();
     await fixture.whenStable();
@@ -112,8 +122,9 @@ describe('PublicBookingPageComponent', () => {
     api = new ApiDoble();
 
     await TestBed.configureTestingModule({
-      imports: [PublicBookingPageComponent],
+      imports: [BookingPageComponent],
       providers: [
+        provideRouter([]),
         { provide: PublicBookingApi, useValue: api },
         { provide: RealtimeService, useValue: new RealtimeDoble() },
       ],
@@ -124,7 +135,7 @@ describe('PublicBookingPageComponent', () => {
     it('muestra el negocio y sus servicios', async () => {
       const el = await montar();
 
-      expect(el.querySelector('.masthead__name')?.textContent).toContain('Barbería Demo');
+      expect(el.querySelector('.topbar')?.textContent).toContain('Barbería Demo');
       expect(el.querySelectorAll('.entry').length).toBe(2);
       expect(el.querySelector('.entry__name')?.textContent).toContain('Corte de pelo');
     });
@@ -139,17 +150,17 @@ describe('PublicBookingPageComponent', () => {
 
     it('aplica el color del negocio como token --brand', async () => {
       const el = await montar();
-      const page = el.querySelector('.page') as HTMLElement;
+      const booking = el.querySelector('.booking') as HTMLElement;
 
-      expect(page.style.getPropertyValue('--brand')).toBe('#c2410c');
+      expect(booking.style.getPropertyValue('--brand')).toBe('#c2410c');
     });
 
     it('sin color propio deja el token por defecto', async () => {
       api.tenant = of({ ...NEGOCIO, branding: null });
       const el = await montar();
-      const page = el.querySelector('.page') as HTMLElement;
+      const booking = el.querySelector('.booking') as HTMLElement;
 
-      expect(page.style.getPropertyValue('--brand')).toBe('');
+      expect(booking.style.getPropertyValue('--brand')).toBe('');
     });
 
     it('un negocio inexistente se distingue de una falla de conexión', async () => {
@@ -157,14 +168,14 @@ describe('PublicBookingPageComponent', () => {
       const el = await montar('no-existe');
 
       expect(el.textContent).toContain('Este negocio no existe');
-      expect(el.querySelector('.masthead')).toBeNull();
+      expect(el.querySelector('.topbar')).toBeNull();
     });
 
     it('una falla de conexión invita a reintentar', async () => {
       api.tenant = throwError(() => new HttpErrorResponse({ status: 500 }));
       const el = await montar();
 
-      expect(el.textContent).toContain('No pudimos cargar el negocio');
+      expect(el.textContent).toContain('No pudimos cargar la reserva');
     });
 
     it('un negocio sin servicios lo dice en vez de mostrar una lista vacía', async () => {
@@ -235,10 +246,10 @@ describe('PublicBookingPageComponent', () => {
       fixture.detectChanges();
     }
 
-    it('al elegir una hora pide los datos con el resumen de lo elegido', async () => {
+    it('al elegir una hora pide los datos con el turno resumido', async () => {
       const el = await llegarAlFormulario();
 
-      expect(el.querySelector('.booking__summary')?.textContent).toContain('Corte de pelo');
+      expect(el.querySelector('.ticket')?.textContent).toContain('Corte de pelo');
       expect(el.querySelector('form')).toBeTruthy();
     });
 

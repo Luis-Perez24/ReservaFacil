@@ -1,64 +1,149 @@
-/* `.page`, `.page__rule`, `.notice` y `.button` son compartidos y viven en
-   `styles.scss`: acá solo lo propio de la pantalla de resultado. */
+/**
+ * Pantalla de resultado tras el pago. Centrada y celebratoria cuando la hora
+ * quedó confirmada: un sello con el color del negocio y la ficha del turno. El
+ * `.button` compartido vive en `styles.scss`.
+ */
+
+.result-page {
+  min-height: 100vh;
+  display: grid;
+  place-items: center;
+  padding: var(--space-16) var(--space-6);
+}
+
+/* ── Estados sin reserva ─────────────────────────────────────────────────────── */
+
+.result__status,
+.result__block {
+  max-width: 34rem;
+  padding: var(--space-8) var(--space-6);
+  text-align: center;
+  color: var(--ink-soft);
+}
+
+.result__block-title {
+  font-family: var(--font-display);
+  font-size: 1.875rem;
+  font-weight: 750;
+  letter-spacing: -0.015em;
+  color: var(--ink);
+  margin-bottom: var(--space-3);
+}
+
+/* ── Resultado ───────────────────────────────────────────────────────────────── */
 
 .result {
+  width: 100%;
+  max-width: 32rem;
   display: grid;
+  justify-items: center;
+  text-align: center;
   gap: var(--space-4);
-  justify-items: start;
-  padding-top: var(--space-8);
+}
+
+/* El sello: neutro si falta pagar; con el color del negocio y un rebote cuando
+   la hora quedó confirmada. El hex se oscurece con tinta para que el check
+   blanco contraste sea cual sea la marca. */
+.result__badge {
+  display: grid;
+  place-items: center;
+  width: 4.5rem;
+  height: 4.5rem;
+  margin-bottom: var(--space-4);
+  border-radius: 50%;
+  background: var(--mist);
+  color: var(--ink-soft);
+}
+
+.result__badge svg {
+  width: 2.25rem;
+  height: 2.25rem;
+}
+
+.result--ok .result__badge {
+  color: #fff;
+  background: color-mix(in oklab, var(--brand) 88%, #17120f);
+  box-shadow: 0 16px 40px -14px color-mix(in oklab, var(--brand) 70%, transparent);
+  animation: badge-pop 520ms var(--ease-spring) both;
 }
 
 .result__eyebrow {
   font-family: var(--font-mono);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.18em;
+  letter-spacing: 0.2em;
   text-transform: uppercase;
-  color: var(--ink-soft);
+  color: var(--brand);
 }
 
 .result__title {
-  font-size: clamp(1.875rem, 6vw, 2.75rem);
-  font-weight: 800;
-  letter-spacing: -0.03em;
+  font-family: var(--font-display);
+  font-size: clamp(1.875rem, 5vw, 2.75rem);
+  font-weight: 750;
+  letter-spacing: -0.02em;
   line-height: 1.05;
   text-wrap: balance;
 }
 
-.result__text {
-  max-width: 46ch;
-  color: var(--ink-soft);
-}
-
-/* Los datos del turno como ficha, con la misma voz monoespaciada que la agenda. */
-.detail {
-  margin: var(--space-4) 0 0;
+/* La ficha del turno, como tarjeta clara. */
+.result__detail {
   width: 100%;
-  max-width: 30rem;
-  border-top: 1px solid var(--line);
+  margin: var(--space-6) 0 var(--space-2);
+  padding: 0 var(--space-6);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 14px;
+  text-align: left;
 }
 
-.detail__row {
+.result__row {
   display: flex;
   justify-content: space-between;
   gap: var(--space-4);
-  padding: var(--space-3) 0;
+  padding: var(--space-4) 0;
   border-bottom: 1px solid var(--line);
 }
 
-.detail__row dt {
-  color: var(--ink-soft);
-  font-size: 0.875rem;
+.result__row:last-child {
+  border-bottom: 0;
 }
 
-.detail__row dd {
-  margin: 0;
-  font-family: var(--font-mono);
-  font-variant-numeric: tabular-nums;
+.result__row dt {
+  color: var(--ink-soft);
   font-size: 0.9375rem;
+}
+
+.result__row dd {
+  margin: 0;
+  font-weight: 600;
   text-align: right;
 }
 
-.detail + .result__text {
-  margin-top: var(--space-2);
+.result__row--total dd {
+  font-family: var(--font-mono);
+  font-variant-numeric: tabular-nums;
+  font-size: 1.125rem;
+  font-weight: 700;
+}
+
+.result__text {
+  max-width: 42ch;
+  color: var(--ink-soft);
+}
+
+/* El botón compartido se alinea a la izquierda por defecto; acá va centrado. */
+.result > .button {
+  justify-self: center;
+  margin-top: var(--space-4);
+}
+
+@keyframes badge-pop {
+  from {
+    opacity: 0;
+    transform: scale(0.7);
+  }
+  to {
+    opacity: 1;
+    transform: scale(1);
+  }
 }

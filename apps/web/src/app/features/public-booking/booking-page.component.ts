@@ -12,6 +12,7 @@ import {
 } from '@angular/core';
 import { takeUntilDestroyed, toObservable, toSignal } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
+import { RouterLink } from '@angular/router';
 import type {
   AvailabilitySlot,
   PublicServiceResponse,
@@ -26,9 +27,9 @@ import { RealtimeService } from '../../core/realtime/realtime.service';
 import { HoldCountdownComponent } from './hold-countdown.component';
 
 /**
- * Un negocio que no existe y una API caída se ven distinto para quien entra:
- * el primero es un enlace equivocado, el segundo es "volvé a intentar". Por eso
- * son estados separados y no un único "error".
+ * La página de reserva, con foco total en el flujo: elegir servicio, día y hora,
+ * dejar los datos y pagar. Vive en `/:slug/reservar`, separada de la landing del
+ * negocio para que quien viene a reservar no tenga ruido alrededor.
  */
 type PageState =
   | { status: 'loading' }
@@ -58,15 +59,15 @@ interface ServiceRow {
 }
 
 @Component({
-  selector: 'app-public-booking-page',
+  selector: 'app-booking-page',
   standalone: true,
-  imports: [ReactiveFormsModule, HoldCountdownComponent],
-  templateUrl: './public-booking-page.component.html',
-  styleUrl: './public-booking-page.component.scss',
+  imports: [ReactiveFormsModule, RouterLink, HoldCountdownComponent],
+  templateUrl: './booking-page.component.html',
+  styleUrl: './booking-page.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
-export class PublicBookingPageComponent {
-  /** Llega de la ruta `/:slug` por `withComponentInputBinding()`. */
+export class BookingPageComponent {
+  /** Llega de la ruta `/:slug/reservar` por `withComponentInputBinding()`. */
   readonly slug = input.required<string>();
 
   private readonly api = inject(PublicBookingApi);
@@ -241,18 +242,30 @@ export class PublicBookingPageComponent {
 
   readonly logoUrl = computed(() => this.tenant()?.branding?.logoUrl ?? null);
 
-  /**
-   * `America/Santiago` es cómo lo guarda la base, no cómo se le habla a alguien
-   * que quiere cortarse el pelo. Se muestra solo la ciudad.
-   */
-  readonly cityLabel = computed(() => {
+  /** El día elegido, en palabras, para el resumen del turno ("jue 27 jul"). */
+  readonly dateLabel = computed(() => {
+    const date = this.selectedDate();
     const timezone = this.tenant()?.timezone;
 
-    if (!timezone) {
+    if (!date || !timezone) {
       return null;
     }
 
-    return timezone.split('/').at(-1)?.replaceAll('_', ' ') ?? timezone;
+    // `date` es 'YYYY-MM-DD' (día local del negocio); se ancla a mediodía UTC
+    // para que el formateo por timezone no lo corra de día.
+    return new Intl.DateTimeFormat('es-CL', {
+      weekday: 'short',
+      day: 'numeric',
+      month: 'short',
+      timeZone: timezone,
+    }).format(new Date(`${date}T12:00:00Z`));
+  });
+
+  /** "jue 27 jul · 09:00" para el turno; null hasta que haya hora elegida. */
+  readonly ticketWhen = computed(() => {
+    const slot = this.selectedSlot();
+
+    return slot ? `${this.dateLabel()} · ${slot.label}` : null;
   });
 
   selectService(service: ServiceRow): void {
