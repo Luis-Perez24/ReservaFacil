@@ -158,6 +158,15 @@ describe('Notifications (e2e)', () => {
     expect(job!.opts.delay).toBeGreaterThan(1000 * 60 * 60 * 24 * 300);
   });
 
+  it('★ el job queda con backoff exponencial y 5 reintentos (checkpoint día 9)', async () => {
+    const { reservationId } = await reservaConfirmada();
+
+    const job = await queue.getJob(`${reservationId}-EMAIL`);
+
+    expect(job!.opts.attempts).toBe(5);
+    expect(job!.opts.backoff).toEqual({ type: 'exponential', delay: 60_000 });
+  });
+
   it('no encola nada para WhatsApp: sigue apagado por config (adr/0003)', async () => {
     const { reservationId } = await reservaConfirmada();
 
