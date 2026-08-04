@@ -1,3 +1,4 @@
+import { ApiProperty, ApiPropertyOptional } from '@nestjs/swagger';
 import type { RegisterBusinessRequest } from '@reservafacil/contracts';
 import {
   IsEmail,
@@ -13,11 +14,16 @@ import {
 const SLUG_PATTERN = /^[a-z0-9]+(?:-[a-z0-9]+)*$/;
 
 export class RegisterBusinessDto implements RegisterBusinessRequest {
+  @ApiProperty({ description: 'Nombre comercial del negocio', example: 'Barbería Don Lucho' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)
   businessName!: string;
 
+  @ApiProperty({
+    description: 'Identificador del negocio en la URL pública: minúsculas, números y guiones',
+    example: 'barberia-don-lucho',
+  })
   @IsString()
   @MinLength(3)
   @MaxLength(50)
@@ -26,20 +32,27 @@ export class RegisterBusinessDto implements RegisterBusinessRequest {
   })
   slug!: string;
 
+  @ApiPropertyOptional({
+    description: 'Zona horaria IANA en que el negocio publica sus horarios',
+    example: 'America/Santiago',
+  })
   @IsOptional()
   @IsString()
   @IsNotEmpty()
   timezone?: string;
 
+  @ApiProperty({ description: 'Nombre completo del dueño', example: 'Juan Pérez' })
   @IsString()
   @IsNotEmpty()
   @MaxLength(120)
   ownerFullName!: string;
 
+  @ApiProperty({ description: 'Correo electrónico del dueño', example: 'juan@barberia.cl' })
   @IsEmail()
   @MaxLength(255)
   email!: string;
 
+  @ApiProperty({ description: 'Contraseña del dueño', example: 'MiClaveSegura123' })
   @IsString()
   @MinLength(8)
   @MaxLength(128)
