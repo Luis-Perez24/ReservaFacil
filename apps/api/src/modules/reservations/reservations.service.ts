@@ -12,7 +12,6 @@ import { DataSource, EntityManager, Repository } from 'typeorm';
 
 import { isUniqueViolation } from '../../infra/db/unique-violation';
 import { AvailabilityService } from '../catalog/availability.service';
-import { RealtimeGateway } from '../realtime/realtime.gateway';
 import { TenantsService } from '../tenants/tenants.service';
 import type { CreateReservationDto } from './dto/create-reservation.dto';
 import { Reservation } from './entities/reservation.entity';
@@ -36,6 +35,19 @@ export interface ReservationConfirmedEvent {
 
 export const RESERVATION_CONFIRMED_EVENT = 'reservation.confirmed';
 
+/**
+ * Lo que `realtime` necesita para avisar en vivo que el slot dejó de estar
+ * libre. Lleva el `slug` porque la room de Socket.IO es por negocio público, y
+ * el núcleo ya lo tiene a mano al crear la reserva.
+ */
+export interface ReservationSlotTakenEvent {
+  slug: string;
+  serviceId: string;
+  startsAt: string;
+}
+
+export const RESERVATION_SLOT_TAKEN_EVENT = 'reservation.slot_taken';
+
 @Injectable()
 export class ReservationsService {
   constructor(
@@ -44,7 +56,6 @@ export class ReservationsService {
     private readonly dataSource: DataSource,
     private readonly tenantsService: TenantsService,
     private readonly availabilityService: AvailabilityService,
-    private readonly realtime: RealtimeGateway,
     private readonly events: EventEmitter2,
   ) {}
 
@@ -159,13 +170,16 @@ export class ReservationsService {
         priceClp: service.price_clp,
       });
 
-      // Aviso en vivo a quien esté mirando la agenda de este negocio. Va al
-      // final y sin `await` sobre su resultado: que el canal de tiempo real
-      // falle no puede tumbar una reserva que la base ya aceptó.
-      this.realtime.emitSlotTaken(slug, {
+      // Aviso en vivo a quien esté mirando la agenda de este negocio. Sale como
+      // evento y no como llamada directa al gateway: el núcleo no conoce a
+      // quienes reaccionan a él (`adr/0001`). Además `emit` no espera al
+      // listener, así que un fallo del canal en vivo no puede tumbar una
+      // reserva que la base ya aceptó.
+      this.events.emit(RESERVATION_SLOT_TAKEN_EVENT, {
+        slug,
         serviceId: dto.serviceId,
         startsAt: row.starts_at.toISOString(),
-      });
+      } satisfies ReservationSlotTakenEvent);
 
       return reservation;
     });

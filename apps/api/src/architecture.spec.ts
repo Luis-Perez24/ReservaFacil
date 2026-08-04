@@ -21,30 +21,19 @@ const PERMITIDAS: Record<string, readonly string[]> = {
   catalog: ['tenants'],
   notifications: ['reservations', 'tenants', 'catalog', 'auth'],
   payments: ['reservations', 'tenants'],
-  realtime: [],
+  realtime: ['reservations'],
   reservations: ['catalog', 'tenants'],
   tenants: [],
 };
 
 /**
- * Desvíos que ya existían cuando se escribió este test. No se esconden: se
- * listan para que cualquiera los vea, y para que la lista no crezca sin que
- * alguien lo note.
- *
- * `reservations → realtime` contradice de frente al ADR 0001 y a
- * `02-arquitectura.md`: el núcleo no debería conocer a sus consumidores.
- * `reservations.service.ts` inyecta `RealtimeGateway` y lo llama directo,
- * mientras que al consumidor equivalente (`notifications`) le avisa por un
- * evento. Dos mecanismos para lo mismo, en el mismo constructor. Está
- * pendiente de decisión: o se mueve a un evento como el resto, o se acepta a
- * conciencia y se refina el ADR. Mientras tanto queda acá, visible.
+ * Desvíos aceptados a conciencia. Vacío hoy, y conviene que siga así: cada
+ * entrada acá es una excepción que alguien tendrá que explicar.
  */
-const DESVIOS_CONOCIDOS: ReadonlyArray<{ de: string; a: string }> = [
-  { de: 'reservations', a: 'realtime' },
-];
+const DESVIOS_CONOCIDOS: ReadonlyArray<{ de: string; a: string }> = [];
 
 /** El núcleo no puede conocer a quienes reaccionan a él. */
-const CONSUMIDORES_DEL_NUCLEO = ['payments', 'notifications', 'ai', 'analytics'];
+const CONSUMIDORES_DEL_NUCLEO = ['payments', 'notifications', 'realtime', 'ai', 'analytics'];
 
 interface Import {
   archivo: string;
