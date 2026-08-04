@@ -281,6 +281,31 @@ export class ReservationsService {
     return saved;
   }
 
+  /**
+   * El job del día 9: libera los holds vencidos que nadie llegó a pagar.
+   * Barre todos los tenants —no es una consulta que responda a un request de
+   * uno solo, es mantenimiento interno, la regla #1 protege lo otro— y usa el
+   * mismo `UPDATE` a nivel de fila que ya corre dentro de `create()` para la
+   * expiración perezosa: dos caminos, un solo predicado, para que no se
+   * puedan desalinear.
+   *
+   * Idempotente por construcción: una fila que ya pasó a `EXPIRED` no vuelve
+   * a calzar con el `WHERE`, así que correrlo dos veces (o dos corridas que se
+   * superpongan) no hace nada de más.
+   */
+  async expireStalePending(): Promise<number> {
+    // Para un UPDATE sin RETURNING, el driver `pg` (vía TypeORM) devuelve
+    // `[filas, conteo]` con `filas` vacío: el conteo va en la segunda posición,
+    // no en `.rowCount` del resultado. Verificado contra la BD real, no supuesto.
+    const [, filasAfectadas]: [unknown[], number] = await this.dataSource.query(
+      `UPDATE reservations
+          SET status = 'EXPIRED', updated_at = now()
+        WHERE status = 'PENDING' AND expires_at <= now()`,
+    );
+
+    return filasAfectadas;
+  }
+
   private async assertSlotIsBookable(
     slug: string,
     serviceId: string,
