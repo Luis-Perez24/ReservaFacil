@@ -9,7 +9,7 @@ import {
 } from '@reservafacil/contracts';
 import { DataSource, Repository } from 'typeorm';
 
-import { ReservationsService } from '../reservations/reservations.service';
+import { ReservationSlotLostError, ReservationsService } from '../reservations/reservations.service';
 import { TenantsService } from '../tenants/tenants.service';
 import { buildBuyOrder } from './buy-order';
 import { Payment } from './entities/payment.entity';
@@ -142,13 +142,31 @@ export class PaymentsService {
         return this.toResult(payment, slug, ReservationStatus.PENDING, result);
       }
 
-      const reservation = await this.reservationsService.confirmWithinTransaction(
-        manager,
-        payment.tenantId,
-        payment.reservationId,
-      );
+      // El pago ya se aprobó y se guardó arriba: si el slot se venció justo
+      // mientras Transbank respondía, eso no puede deshacer el cobro. Se
+      // distingue de un error real (que sí debe hacer rollback) para no
+      // terminar con dinero cobrado y ningún registro de que se aprobó —el
+      // peor resultado posible, el mismo que describe `adr/0006`.
+      try {
+        const reservation = await this.reservationsService.confirmWithinTransaction(
+          manager,
+          payment.tenantId,
+          payment.reservationId,
+        );
 
-      return this.toResult(payment, slug, reservation.status, result);
+        return this.toResult(payment, slug, reservation.status, result);
+      } catch (error) {
+        if (error instanceof ReservationSlotLostError) {
+          this.logger.error(
+            `Pago ${payment.buyOrder} aprobado pero la reserva ya no es confirmable ` +
+              `(${error.currentStatus}): revisar manualmente`,
+          );
+
+          return this.toResult(payment, slug, error.currentStatus, result);
+        }
+
+        throw error;
+      }
     });
   }
 

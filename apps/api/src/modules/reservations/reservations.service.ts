@@ -15,7 +15,7 @@ import { AvailabilityService } from '../catalog/availability.service';
 import { TenantsService } from '../tenants/tenants.service';
 import type { CreateReservationDto } from './dto/create-reservation.dto';
 import { Reservation } from './entities/reservation.entity';
-import { assertTransition } from './reservation-state-machine';
+import { assertTransition, isTerminal } from './reservation-state-machine';
 
 /** Retención del slot mientras el cliente paga. Ver regla #2 y `adr/0002`. */
 const HOLD_MINUTES = 10;
@@ -47,6 +47,23 @@ export interface ReservationSlotTakenEvent {
 }
 
 export const RESERVATION_SLOT_TAKEN_EVENT = 'reservation.slot_taken';
+
+/**
+ * Webpay aprobó el pago, pero el hold ya no es confirmable: el job de
+ * expiración (o la expiración perezosa de `create()`) lo pasó a `EXPIRED`
+ * mientras el cliente pagaba, o alguien lo `CANCELLED` entre medio. No es un
+ * bug —es la misma carrera entre "pagar" y "que se venzan los 10 minutos"
+ * que motivó el lock del `adr/0002`, solo que ganada por el reloj en vez de
+ * por otro cliente— así que se distingue de `InvalidStateTransitionError`:
+ * quien la atrape (`payments.service.ts`) necesita reaccionar distinto a un
+ * error de programación.
+ */
+export class ReservationSlotLostError extends Error {
+  constructor(readonly currentStatus: ReservationStatus) {
+    super(`La reserva ya no es confirmable (estado ${currentStatus})`);
+    this.name = 'ReservationSlotLostError';
+  }
+}
 
 @Injectable()
 export class ReservationsService {
@@ -253,6 +270,16 @@ export class ReservationsService {
     // Ya confirmada por un commit anterior: idempotente, no es un error.
     if (reservation.status === ReservationStatus.CONFIRMED) {
       return reservation;
+    }
+
+    // Terminal y no CONFIRMED: el slot se perdió (venció o se canceló) antes
+    // de que Transbank respondiera. `assertTransition` de más abajo también lo
+    // rechazaría, pero como "transición inválida" genérica —un 422 que suena a
+    // bug de programación—, cuando en realidad es una carrera esperada con
+    // dinero de por medio. Se distingue para que quien llama pueda registrar el
+    // cobro aprobado sin que este throw tumbe esa escritura.
+    if (isTerminal(reservation.status)) {
+      throw new ReservationSlotLostError(reservation.status);
     }
 
     // Las dos transiciones del flujo, validadas por la máquina de estados.

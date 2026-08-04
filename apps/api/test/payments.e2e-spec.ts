@@ -290,6 +290,37 @@ describe('Payments (e2e)', () => {
       expect(Number(count)).toBe(1);
     });
 
+    /**
+     * La carrera que introduce el job de expiración (día 9): el cliente inicia
+     * el pago con el hold vigente, pero para cuando Webpay responde el job ya
+     * lo pasó a `EXPIRED` —diez minutos son una eternidad si el navegador se
+     * demora en volver—. El dinero de todas formas se cobró: `commit()` no
+     * puede perder ese hecho solo porque la reserva ya no es confirmable
+     * (`ReservationSlotLostError`, `adr/0006`). Se fuerza el `EXPIRED` por SQL
+     * directo en vez de esperar el minuto real: es la forma determinista de
+     * plantar la misma ventana de tiempo sin un test lento o intermitente.
+     */
+    it('★ pago aprobado tras expirar el hold: se guarda el cobro, la reserva no se confirma', async () => {
+      const { reservationId } = await setupReserva();
+      const inicio = await iniciarPago(reservationId).expect(201);
+
+      await dataSource.query("UPDATE reservations SET status = 'EXPIRED' WHERE id = $1", [
+        reservationId,
+      ]);
+
+      await retornoWebpay(inicio.body.token).expect(302);
+
+      expect(await estadoReserva(reservationId)).toBe('EXPIRED');
+
+      const [pago]: Array<{ status: string }> = await dataSource.query(
+        'SELECT status FROM payments WHERE reservation_id = $1',
+        [reservationId],
+      );
+      // El punto central: el pago queda APPROVED, no se pierde ni se atasca en
+      // INITIATED por el rollback que un throw sin capturar habría causado.
+      expect(pago.status).toBe('APPROVED');
+    });
+
     it('pago rechazado: la reserva sigue PENDING y expira sola', async () => {
       const { reservationId } = await setupReserva();
       webpay.commitResponse = rechazado;
