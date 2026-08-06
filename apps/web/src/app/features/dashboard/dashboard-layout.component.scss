@@ -1,0 +1,44 @@
+.dashboard {
+  min-height: 100dvh;
+  background: var(--surface);
+}
+
+.dashboard__header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--space-4);
+  padding: var(--space-4) var(--space-6);
+  background: var(--paper);
+  border-bottom: 1px solid var(--line);
+}
+
+.dashboard__brand {
+  font-size: 0.8rem;
+  font-weight: 600;
+  letter-spacing: 0.02em;
+  text-transform: uppercase;
+  color: var(--ink-soft);
+}
+
+.dashboard__business {
+  font-family: var(--font-display);
+  font-size: 1.25rem;
+}
+
+.dashboard__account {
+  display: flex;
+  align-items: center;
+  gap: var(--space-4);
+}
+
+.dashboard__user {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.dashboard__content {
+  padding: var(--space-6);
+  max-width: 72rem;
+  margin-inline: auto;
+}

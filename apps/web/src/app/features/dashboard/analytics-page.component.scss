@@ -1,0 +1,72 @@
+.analytics {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.analytics__toolbar {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: end;
+  gap: var(--space-4);
+}
+
+.field--date {
+  width: 10rem;
+}
+
+.analytics__total {
+  margin-left: auto;
+  display: grid;
+  gap: var(--space-1);
+  text-align: right;
+}
+
+.analytics__total-label {
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.analytics__total-value {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.analytics__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  gap: var(--space-6);
+}
+
+.card {
+  display: grid;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  align-content: start;
+}
+
+.card--wide {
+  grid-column: 1 / -1;
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+.card__hint {
+  margin-top: calc(var(--space-3) * -1);
+  font-size: 0.8rem;
+  color: var(--ink-soft);
+}
+
+.card__chart {
+  height: 16rem;
+}
+
+.card__chart--wide {
+  height: 18rem;
+}
