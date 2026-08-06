@@ -54,6 +54,7 @@ function reservaPendiente(minutos = 10): ReservationResponse {
     endsAt: '2027-01-04T12:30:00.000Z',
     expiresAt: new Date(Date.now() + minutos * 60_000).toISOString(),
     priceClp: 12000,
+    attended: null,
   };
 }
 
