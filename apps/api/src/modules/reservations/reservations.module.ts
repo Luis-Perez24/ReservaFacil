@@ -7,6 +7,7 @@ import { TenantsModule } from '../tenants/tenants.module';
 import { Reservation } from './entities/reservation.entity';
 import { ExpirationProcessor } from './expiration.processor';
 import { EXPIRATION_QUEUE } from './expiration.queue';
+import { ReservationAttendanceController } from './reservation-attendance.controller';
 import { ReservationsController } from './reservations.controller';
 import { ReservationsService } from './reservations.service';
 
@@ -27,7 +28,7 @@ import { ReservationsService } from './reservations.service';
     CatalogModule,
     BullModule.registerQueue({ name: EXPIRATION_QUEUE }),
   ],
-  controllers: [ReservationsController],
+  controllers: [ReservationsController, ReservationAttendanceController],
   providers: [ReservationsService, ExpirationProcessor],
   exports: [ReservationsService],
 })
