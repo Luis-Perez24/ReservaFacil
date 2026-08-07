@@ -40,6 +40,20 @@ export const routes: Routes = [
             (m) => m.AnalyticsPageComponent,
           ),
       },
+      {
+        path: 'servicios',
+        loadComponent: () =>
+          import('./features/dashboard/services-page.component').then(
+            (m) => m.ServicesPageComponent,
+          ),
+      },
+      {
+        path: 'horarios',
+        loadComponent: () =>
+          import('./features/dashboard/availability-page.component').then(
+            (m) => m.AvailabilityPageComponent,
+          ),
+      },
     ],
   },
   {
