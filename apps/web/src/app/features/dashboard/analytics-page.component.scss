@@ -7,6 +7,27 @@
   display: flex;
   flex-wrap: wrap;
   align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.analytics__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: var(--space-1);
+}
+
+.analytics__page-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.analytics__range {
+  display: flex;
   gap: var(--space-4);
 }
 
@@ -14,22 +35,47 @@
   width: 10rem;
 }
 
-.analytics__total {
-  margin-left: auto;
+/* ── Tarjetas de resumen ─────────────────────────────────────────────── */
+.analytics__stats {
   display: grid;
-  gap: var(--space-1);
-  text-align: right;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-4);
 }
 
-.analytics__total-label {
-  font-size: 0.8rem;
+.stat {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.stat__label {
+  font-size: 0.85rem;
   color: var(--ink-soft);
 }
 
-.analytics__total-value {
+.stat__value {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
+}
+
+/* La tarjeta principal (ingresos) lleva el color de marca; el resto queda
+   neutro para que ese número siga siendo el que más pesa a la vista. */
+.stat--accent {
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklab, var(--brand) 92%, black) 0%,
+    color-mix(in oklab, var(--brand) 70%, black) 100%
+  );
+  border-color: transparent;
+  color: var(--paper);
+}
+
+.stat--accent .stat__label {
+  color: color-mix(in oklab, var(--paper) 75%, transparent);
 }
 
 .analytics__grid {
@@ -69,6 +115,20 @@
 
 .card--wide {
   grid-column: 1 / -1;
+}
+
+.card__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.card__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
 }
 
 .card__title {

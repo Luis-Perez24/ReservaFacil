@@ -1,26 +1,41 @@
 <section class="analytics">
   <header class="analytics__toolbar reveal is-visible">
-    <label class="field field--date">
-      <span class="field__label">Desde</span>
-      <input class="field__input" type="date" [value]="from()" (change)="changeFrom($any($event.target).value)" />
-    </label>
+    <div>
+      <p class="analytics__eyebrow">Métricas</p>
+      <h1 class="analytics__page-title">Cómo le está yendo a tu negocio</h1>
+    </div>
 
-    <label class="field field--date">
-      <span class="field__label">Hasta</span>
-      <input class="field__input" type="date" [value]="to()" (change)="changeTo($any($event.target).value)" />
-    </label>
+    <div class="analytics__range">
+      <label class="field field--date">
+        <span class="field__label">Desde</span>
+        <input class="field__input" type="date" [value]="from()" (change)="changeFrom($any($event.target).value)" />
+      </label>
 
-    @if (totalRevenue(); as total) {
-      <p class="analytics__total">
-        <span class="analytics__total-label">Ingresos en el rango</span>
-        <span class="analytics__total-value">{{ total }}</span>
-      </p>
-    }
+      <label class="field field--date">
+        <span class="field__label">Hasta</span>
+        <input class="field__input" type="date" [value]="to()" (change)="changeTo($any($event.target).value)" />
+      </label>
+    </div>
   </header>
+
+  <div class="analytics__stats reveal is-visible">
+    <article class="stat stat--accent">
+      <p class="stat__label">Ingresos en el rango</p>
+      <p class="stat__value">{{ totalRevenue() ?? '—' }}</p>
+    </article>
+
+    <article class="stat">
+      <p class="stat__label">Reservas en el rango</p>
+      <p class="stat__value">{{ totalReservations() ?? '—' }}</p>
+    </article>
+  </div>
 
   <div class="analytics__grid">
     <article class="card reveal is-visible">
-      <h2 class="card__title">Ingresos por día</h2>
+      <div class="card__heading">
+        <span class="card__dot" aria-hidden="true"></span>
+        <h2 class="card__title">Ingresos por día</h2>
+      </div>
       @switch (daily().status) {
         @case ('loading') {
           <p class="notice">Cargando…</p>
@@ -39,7 +54,10 @@
     </article>
 
     <article class="card reveal is-visible">
-      <h2 class="card__title">Ocupación por día</h2>
+      <div class="card__heading">
+        <span class="card__dot" aria-hidden="true"></span>
+        <h2 class="card__title">Ocupación por día</h2>
+      </div>
       <p class="card__hint">Los huecos son días sin reservas o sin horario configurado — no se inventa un 0%.</p>
       @switch (daily().status) {
         @case ('loading') {
@@ -59,7 +77,10 @@
     </article>
 
     <article class="card card--wide reveal is-visible">
-      <h2 class="card__title">Top servicios por ingresos</h2>
+      <div class="card__heading">
+        <span class="card__dot" aria-hidden="true"></span>
+        <h2 class="card__title">Top servicios por ingresos</h2>
+      </div>
       @switch (topServices().status) {
         @case ('loading') {
           <p class="notice">Cargando…</p>
