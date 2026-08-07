@@ -1,0 +1,122 @@
+.services {
+  display: grid;
+  gap: var(--space-6);
+}
+
+.services__toolbar {
+  display: flex;
+  align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.services__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: var(--space-1);
+}
+
+.services__page-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+/* ── Tarjeta genérica, misma receta que analytics-page.component.scss ──── */
+.card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  padding: var(--space-6);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.03),
+    0 12px 28px -18px rgb(0 0 0 / 0.14);
+  transition:
+    box-shadow 220ms var(--ease-out),
+    border-color 220ms var(--ease-out);
+}
+
+.card__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.card__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
+}
+
+.card__title {
+  font-family: var(--font-display);
+  font-size: 1.1rem;
+}
+
+/* ── Formulario ───────────────────────────────────────────────────────── */
+.services__form-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
+  gap: var(--space-4);
+}
+
+.services__form-actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: var(--space-3);
+}
+
+/* ── Grilla de servicios ──────────────────────────────────────────────── */
+.services__grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(16rem, 1fr));
+  gap: var(--space-4);
+}
+
+.services__item:hover {
+  border-color: color-mix(in oklab, var(--brand) 30%, var(--line));
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.05),
+    0 20px 44px -20px rgb(0 0 0 / 0.22);
+}
+
+.services__item--inactive {
+  opacity: 0.6;
+}
+
+.services__meta {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
+}
+
+.services__badge {
+  margin-left: auto;
+  padding: 0.15rem var(--space-2);
+  border-radius: 999px;
+  background: var(--surface);
+  color: var(--ink-soft);
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+.services__item-actions {
+  display: flex;
+  gap: var(--space-3);
+  margin-top: auto;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
+}
