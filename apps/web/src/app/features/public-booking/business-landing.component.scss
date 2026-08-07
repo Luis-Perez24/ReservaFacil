@@ -462,6 +462,20 @@
   font-weight: 700;
 }
 
+/* Casi invisible a propósito: es para el dueño que ya sabe que lo busca acá,
+   no una segunda llamada a la acción compitiendo con "Reservar". */
+.footer__owner-link {
+  font-size: 0.8125rem;
+  color: rgba(255, 255, 255, 0.4);
+  text-decoration: none;
+  transition: color 140ms var(--ease-out);
+}
+
+.footer__owner-link:hover {
+  color: rgba(255, 255, 255, 0.75);
+  text-decoration: underline;
+}
+
 .footer__note {
   font-family: var(--font-mono);
   font-size: 0.8125rem;

@@ -154,9 +154,12 @@
 
         <div class="footer__bar">
           <p class="footer__credit">Reservas con <strong>ReservaFácil</strong></p>
+          <a class="footer__owner-link" routerLink="/dashboard/login">¿Eres el dueño? Inicia sesión</a>
           <p class="footer__note">Hecho en Chile</p>
         </div>
       </div>
     </footer>
+
+    <app-chat-widget [slug]="slug()" />
   }
 </div>

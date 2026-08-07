@@ -18,6 +18,7 @@ import { catchError, map, of, startWith, switchMap } from 'rxjs';
 import { PublicBookingApi } from '../../core/api/public-booking.api';
 import { ParallaxDirective } from '../../shared/parallax.directive';
 import { RevealOnScrollDirective } from '../../shared/reveal-on-scroll.directive';
+import { ChatWidgetComponent } from './chat-widget.component';
 
 /**
  * La página del negocio: su cara pública. Presenta el lugar (Inicio) y cuenta
@@ -34,7 +35,7 @@ type PageState =
 @Component({
   selector: 'app-business-landing',
   standalone: true,
-  imports: [RouterLink, RevealOnScrollDirective, ParallaxDirective],
+  imports: [RouterLink, RevealOnScrollDirective, ParallaxDirective, ChatWidgetComponent],
   templateUrl: './business-landing.component.html',
   styleUrl: './business-landing.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
