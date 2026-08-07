@@ -194,6 +194,20 @@
   animation-delay: 2500ms;
 }
 
+.login__sparkle--four {
+  top: 14%;
+  left: 40%;
+  width: 3px;
+  height: 3px;
+  animation-delay: 1100ms;
+}
+
+.login__sparkle--five {
+  top: 78%;
+  left: 30%;
+  animation-delay: 3200ms;
+}
+
 @keyframes twinkle {
   0%,
   100% {
@@ -208,13 +222,43 @@
 
 /* ── Lado del formulario ─────────────────────────────────────────────── */
 .login__form-side {
+  position: relative;
   display: grid;
   place-items: center;
   padding: var(--space-6);
   background: var(--surface);
+  overflow: hidden;
+}
+
+/* Luz difusa detrás de la tarjeta: sin esto, el fondo queda plano y sin
+   profundidad al lado del panel de marca, que sí la tiene. */
+.login__ambient {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36rem;
+  height: 36rem;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--brand) 30%, transparent) 0%,
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+/* Grano fino vía SVG (feTurbulence), no una imagen: textura, no una foto de ruido. */
+.login__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .login__card {
+  position: relative;
   display: grid;
   gap: var(--space-6);
   width: min(100%, 24rem);
@@ -222,7 +266,9 @@
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 20px;
-  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.18);
+  box-shadow:
+    0 24px 60px -20px rgb(0 0 0 / 0.18),
+    0 10px 34px -16px color-mix(in oklab, var(--brand) 45%, transparent);
 }
 
 .login__form-header {
