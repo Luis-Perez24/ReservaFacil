@@ -21,9 +21,16 @@ const SLOT_9 = '2027-01-04T12:00:00.000Z'; // 09:00 local (America/Santiago, UTC
 class FakeGeminiClient extends GeminiClient {
   responses: GeminiResult[] = [];
   calls: Array<{ contents: GeminiContent[] }> = [];
+  /** Simula "Gemini caído" (día 12, parte 1): cada llamada revienta, sin consumir `responses`. */
+  alwaysFail = false;
 
   async send(params: { contents: GeminiContent[] }): Promise<GeminiResult> {
     this.calls.push({ contents: params.contents });
+
+    if (this.alwaysFail) {
+      throw new Error('Gemini no responde (simulado)');
+    }
+
     const next = this.responses.shift();
 
     if (!next) {
@@ -58,6 +65,7 @@ describe('AI chat (e2e)', () => {
     await dataSource.query('TRUNCATE TABLE "users", "tenants" RESTART IDENTITY CASCADE');
     gemini.responses = [];
     gemini.calls = [];
+    gemini.alwaysFail = false;
   });
 
   afterAll(async () => {
@@ -224,6 +232,23 @@ describe('AI chat (e2e)', () => {
       const funcionEjecutada = ultimaFunctionResponse();
       expect(funcionEjecutada['disponible']).toBe(true);
       expect(funcionEjecutada['precioClp']).toBe(15000);
+    });
+  });
+
+  describe('degradación elegante', () => {
+    it('si Gemini no responde, degrada en vez de devolver un 500', async () => {
+      await setupNegocio('barberia-ai-f', 'f-ai@test.cl');
+      gemini.alwaysFail = true;
+
+      const respuesta = await request(app.getHttpServer())
+        .post('/public/barberia-ai-f/chat')
+        .send({ message: 'quiero corte el lunes' })
+        .expect(201);
+
+      expect(respuesta.body.degraded).toBe(true);
+      expect(respuesta.body.reply).toBe(
+        'No pudimos conectar con el asistente ahora mismo. Puedes buscar disponibilidad manualmente.',
+      );
     });
   });
 

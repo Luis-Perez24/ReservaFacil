@@ -1,4 +1,4 @@
-import { Injectable, NotFoundException } from '@nestjs/common';
+import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import type { ChatMessage, ChatResponse } from '@reservafacil/contracts';
 import { DateTime } from 'luxon';
 
@@ -17,6 +17,10 @@ const MAX_HISTORY_TURNS = 20;
  * que esto, algo salió raro y es mejor cortar que dejarlo ir para siempre.
  */
 const MAX_FUNCTION_CALL_ROUNDS = 4;
+
+/** Fijo, no inventado: la IA es comodidad, nunca camino crítico (adr/0004). */
+const DEGRADED_REPLY =
+  'No pudimos conectar con el asistente ahora mismo. Puedes buscar disponibilidad manualmente.';
 
 /**
  * Solo los campos del catálogo que este módulo necesita — no se importa la
@@ -42,6 +46,8 @@ interface CatalogService {
  */
 @Injectable()
 export class AiService {
+  private readonly logger = new Logger(AiService.name);
+
   constructor(
     private readonly tenantsService: TenantsService,
     private readonly servicesService: ServicesService,
@@ -72,33 +78,43 @@ export class AiService {
     ];
 
     let reply = 'No pude terminar de procesar tu solicitud, ¿puedes reformularla?';
+    let degraded = false;
 
-    for (let ronda = 0; ronda < MAX_FUNCTION_CALL_ROUNDS; ronda++) {
-      const result = await this.gemini.send({ systemInstruction, functionDeclarations: AI_FUNCTIONS, contents });
+    try {
+      for (let ronda = 0; ronda < MAX_FUNCTION_CALL_ROUNDS; ronda++) {
+        const result = await this.gemini.send({ systemInstruction, functionDeclarations: AI_FUNCTIONS, contents });
 
-      if (result.kind === 'text') {
-        reply = result.text;
-        break;
+        if (result.kind === 'text') {
+          reply = result.text;
+          break;
+        }
+
+        const functionResult = await this.executeFunction(
+          tenant.slug,
+          tenant.timezone,
+          services,
+          result.name,
+          result.args,
+        );
+
+        contents = [
+          ...contents,
+          { role: 'model', functionCall: { name: result.name, args: result.args } },
+          { role: 'function', functionResponse: { name: result.name, response: functionResult } },
+        ];
       }
-
-      const functionResult = await this.executeFunction(
-        tenant.slug,
-        tenant.timezone,
-        services,
-        result.name,
-        result.args,
-      );
-
-      contents = [
-        ...contents,
-        { role: 'model', functionCall: { name: result.name, args: result.args } },
-        { role: 'function', functionResponse: { name: result.name, response: functionResult } },
-      ];
+    } catch (error) {
+      // Reintentos agotados (ResilientGeminiClient, día 12 parte 1): la IA es
+      // comodidad, nunca camino crítico (adr/0004) — se degrada, no se cae.
+      this.logger.warn(`Gemini no respondió tras los reintentos: ${error instanceof Error ? error.message : error}`);
+      reply = DEGRADED_REPLY;
+      degraded = true;
     }
 
     return {
       reply,
       history: [...recentHistory, { role: 'user', text: message }, { role: 'model', text: reply }],
+      ...(degraded ? { degraded: true } : {}),
     };
   }
 
