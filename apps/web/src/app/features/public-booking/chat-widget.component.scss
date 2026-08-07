@@ -1,0 +1,100 @@
+.chat-widget {
+  position: fixed;
+  right: var(--space-4);
+  bottom: var(--space-4);
+  z-index: 40;
+  display: flex;
+  flex-direction: column;
+  align-items: flex-end;
+  gap: var(--space-3);
+}
+
+.chat-widget__toggle {
+  width: 3.25rem;
+  height: 3.25rem;
+  border-radius: 50%;
+  border: 0;
+  background: var(--brand, var(--ink));
+  color: var(--paper);
+  font-size: 1.4rem;
+  line-height: 1;
+  cursor: pointer;
+  box-shadow: 0 8px 24px rgb(0 0 0 / 0.18);
+  transition: transform 140ms var(--ease-out);
+}
+
+.chat-widget__toggle:active {
+  transform: scale(0.94);
+}
+
+.chat-widget__panel {
+  width: min(22rem, calc(100vw - 2 * var(--space-4)));
+  max-height: min(32rem, 70vh);
+  display: flex;
+  flex-direction: column;
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+  box-shadow: 0 16px 48px rgb(0 0 0 / 0.16);
+  overflow: hidden;
+}
+
+.chat-widget__header {
+  padding: var(--space-3) var(--space-4);
+  font-weight: 650;
+  background: var(--brand, var(--ink));
+  color: var(--paper);
+}
+
+.chat-widget__messages {
+  flex: 1;
+  display: grid;
+  align-content: start;
+  gap: var(--space-2);
+  padding: var(--space-4);
+  overflow-y: auto;
+}
+
+.chat-bubble {
+  justify-self: start;
+  max-width: 85%;
+  padding: var(--space-2) var(--space-3);
+  background: var(--surface);
+  border-radius: 12px 12px 12px 2px;
+  font-size: 0.9rem;
+  line-height: 1.4;
+}
+
+.chat-bubble--user {
+  justify-self: end;
+  background: var(--brand, var(--ink));
+  color: var(--paper);
+  border-radius: 12px 12px 2px 12px;
+}
+
+.chat-widget__fallback {
+  margin: 0 var(--space-4) var(--space-3);
+  text-align: center;
+}
+
+.chat-widget__form {
+  display: flex;
+  gap: var(--space-2);
+  padding: var(--space-3);
+  border-top: 1px solid var(--line);
+}
+
+.chat-widget__form .field__input {
+  flex: 1;
+}
+
+.chat-widget__send {
+  padding-inline: var(--space-4);
+}
+
+@media (max-width: 26rem) {
+  .chat-widget {
+    right: var(--space-2);
+    bottom: var(--space-2);
+  }
+}

@@ -1,0 +1,54 @@
+<div class="chat-widget">
+  <button
+    class="chat-widget__toggle"
+    type="button"
+    (click)="toggle()"
+    [attr.aria-expanded]="open()"
+    [attr.aria-label]="open() ? 'Cerrar chat de reservas' : 'Abrir chat de reservas'"
+  >
+    @if (open()) {
+      <span aria-hidden="true">&times;</span>
+    } @else {
+      <span aria-hidden="true">&#128172;</span>
+    }
+  </button>
+
+  @if (open()) {
+    <div class="chat-widget__panel reveal is-visible" role="dialog" aria-label="Chat de reservas">
+      <header class="chat-widget__header">Asistente de reservas</header>
+
+      <div class="chat-widget__messages">
+        @for (turno of messages(); track $index) {
+          <p class="chat-bubble" [class.chat-bubble--user]="turno.role === 'user'">{{ turno.text }}</p>
+        }
+        @if (sending()) {
+          <p class="chat-bubble">
+            <span class="spinner" aria-hidden="true"></span>
+            Escribiendo…
+          </p>
+        }
+      </div>
+
+      @if (degraded()) {
+        <a class="button button--ghost chat-widget__fallback" [routerLink]="['reservar']">
+          Buscar disponibilidad manualmente
+        </a>
+      }
+
+      <form class="chat-widget__form" (ngSubmit)="send()">
+        <input
+          class="field__input"
+          type="text"
+          placeholder="Escribe tu mensaje…"
+          [ngModel]="draft()"
+          (ngModelChange)="draft.set($event)"
+          name="mensaje"
+          autocomplete="off"
+        />
+        <button class="button chat-widget__send" type="submit" [disabled]="sending() || !draft().trim()">
+          Enviar
+        </button>
+      </form>
+    </div>
+  }
+</div>
