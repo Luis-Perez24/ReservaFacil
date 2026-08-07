@@ -75,6 +75,10 @@ jobs:
       SMTP_HOST: localhost
       SMTP_PORT: '1025'
       SMTP_FROM: 'ReservaFácil <no-reply@reservafacil.cl>'
+      # Valor de mentira: los e2e de ai reemplazan GeminiClient por un doble
+      # (FakeGeminiClient) y el resto de los e2e nunca llama a Gemini, así
+      # que esto solo tiene que satisfacer la validación de entorno.
+      GEMINI_API_KEY: ci-fake-key-nunca-se-usa-de-verdad
 
     steps:
       - uses: actions/checkout@v4
