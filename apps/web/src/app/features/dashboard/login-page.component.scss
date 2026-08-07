@@ -34,9 +34,9 @@
   position: absolute;
   inset: 0;
   background: radial-gradient(
-    28rem circle at var(--mouse-x) var(--mouse-y),
-    rgba(255, 255, 255, 0.12),
-    transparent 60%
+    15rem circle at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.14),
+    transparent 65%
   );
   opacity: 0;
   transition: opacity 220ms var(--ease-out);
@@ -97,6 +97,21 @@
   max-width: 26rem;
 }
 
+/* Entrada en cascada: cada elemento define su propio --delay inline. */
+.login__fade-in {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: brand-fade-in 700ms var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes brand-fade-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
 .login__mark {
   font-family: var(--font-display);
   font-weight: 700;
@@ -114,10 +129,81 @@
   margin-bottom: var(--space-4);
 }
 
+/* Pasada de luz sobre el título: un degradé animado recortado al texto. */
+.login__shimmer {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.75) 30%,
+    #fff 45%,
+    rgba(255, 255, 255, 0.75) 60%
+  );
+  background-size: 220% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-sweep 5s var(--ease-out) 900ms infinite;
+}
+
+@keyframes shimmer-sweep {
+  0%,
+  35% {
+    background-position: 100% 0;
+  }
+  65%,
+  100% {
+    background-position: -60% 0;
+  }
+}
+
 .login__copy {
   color: rgba(255, 255, 255, 0.68);
   line-height: 1.6;
   max-width: 24rem;
+}
+
+/* Chispitas: puntos diminutos que titilan cerca del texto, nunca encima. */
+.login__sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px 1px rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  animation: twinkle 3.2s ease-in-out infinite;
+}
+
+.login__sparkle--one {
+  top: 22%;
+  left: 62%;
+  animation-delay: 400ms;
+}
+
+.login__sparkle--two {
+  top: 68%;
+  left: 78%;
+  animation-delay: 1600ms;
+}
+
+.login__sparkle--three {
+  top: 45%;
+  left: 85%;
+  width: 3px;
+  height: 3px;
+  animation-delay: 2500ms;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.3);
+  }
 }
 
 /* ── Lado del formulario ─────────────────────────────────────────────── */
