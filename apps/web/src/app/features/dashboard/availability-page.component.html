@@ -1,0 +1,165 @@
+<section class="availability">
+  <header class="availability__toolbar reveal is-visible">
+    <div>
+      <p class="availability__eyebrow">Horarios</p>
+      <h1 class="availability__page-title">Cuándo atiendes</h1>
+    </div>
+  </header>
+
+  <!-- ── Horario semanal ──────────────────────────────────────────────── -->
+  <article class="card reveal is-visible">
+    <div class="card__heading">
+      <span class="card__dot" aria-hidden="true"></span>
+      <h2 class="card__title">Horario semanal</h2>
+    </div>
+
+    <form class="availability__form" [formGroup]="ruleForm" (ngSubmit)="submitRule()">
+      <div class="availability__form-grid">
+        <label class="field">
+          <span class="field__label">Día</span>
+          <select class="field__input" formControlName="dayOfWeek">
+            @for (label of dayLabels; track label; let i = $index) {
+              <option [ngValue]="i">{{ label }}</option>
+            }
+          </select>
+        </label>
+
+        <label class="field">
+          <span class="field__label">Desde</span>
+          <input class="field__input" type="time" formControlName="startTime" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Hasta</span>
+          <input class="field__input" type="time" formControlName="endTime" />
+        </label>
+
+        <label class="field">
+          <span class="field__label">Intervalo (min)</span>
+          <input class="field__input" type="number" formControlName="slotIntervalMin" min="5" max="480" />
+          @if (ruleForm.controls.slotIntervalMin.touched && ruleForm.controls.slotIntervalMin.invalid) {
+            <span class="field__error">Entre 5 y 480 minutos.</span>
+          }
+        </label>
+      </div>
+
+      @if (ruleFormError(); as error) {
+        <p class="field__error" role="alert">{{ error }}</p>
+      }
+
+      <div class="availability__form-actions">
+        <button class="button" type="submit" [disabled]="ruleSubmitting()">
+          @if (ruleSubmitting()) {
+            <span class="spinner" aria-hidden="true"></span>
+          }
+          Agregar
+        </button>
+      </div>
+    </form>
+
+    @switch (rulesState().status) {
+      @case ('loading') {
+        <p class="notice">Cargando…</p>
+      }
+      @case ('error') {
+        <p class="notice">No pudimos cargar tus horarios.</p>
+      }
+      @default {
+        @if (rules().length === 0) {
+          <p class="notice">Sin horario configurado todavía.</p>
+        } @else {
+          <ul class="availability__list">
+            @for (rule of rules(); track rule.id) {
+              <li class="availability__row">
+                <span class="availability__row-main">
+                  <strong>{{ dayLabel(rule.dayOfWeek) }}</strong>
+                  {{ rule.startTime }}–{{ rule.endTime }} · turnos de {{ rule.slotIntervalMin }} min
+                </span>
+                <button class="button button--ghost" type="button" (click)="deleteRule(rule.id)">Eliminar</button>
+              </li>
+            }
+          </ul>
+        }
+      }
+    }
+  </article>
+
+  <!-- ── Excepciones ──────────────────────────────────────────────────── -->
+  <article class="card reveal is-visible">
+    <div class="card__heading">
+      <span class="card__dot" aria-hidden="true"></span>
+      <h2 class="card__title">Feriados y cierres puntuales</h2>
+    </div>
+
+    <form class="availability__form" [formGroup]="exceptionForm" (ngSubmit)="submitException()">
+      <div class="availability__form-grid">
+        <label class="field">
+          <span class="field__label">Fecha</span>
+          <input class="field__input" type="date" formControlName="date" />
+        </label>
+
+        <label class="field field--checkbox">
+          <input type="checkbox" formControlName="closed" />
+          <span class="field__label">Cerrado todo el día</span>
+        </label>
+
+        @if (!exceptionForm.controls.closed.value) {
+          <label class="field">
+            <span class="field__label">Desde</span>
+            <input class="field__input" type="time" formControlName="startTime" />
+          </label>
+
+          <label class="field">
+            <span class="field__label">Hasta</span>
+            <input class="field__input" type="time" formControlName="endTime" />
+          </label>
+        }
+      </div>
+
+      @if (exceptionFormError(); as error) {
+        <p class="field__error" role="alert">{{ error }}</p>
+      }
+
+      <div class="availability__form-actions">
+        <button class="button" type="submit" [disabled]="exceptionSubmitting()">
+          @if (exceptionSubmitting()) {
+            <span class="spinner" aria-hidden="true"></span>
+          }
+          Agregar
+        </button>
+      </div>
+    </form>
+
+    @switch (exceptionsState().status) {
+      @case ('loading') {
+        <p class="notice">Cargando…</p>
+      }
+      @case ('error') {
+        <p class="notice">No pudimos cargar tus excepciones.</p>
+      }
+      @default {
+        @if (exceptions().length === 0) {
+          <p class="notice">Sin feriados ni cierres configurados.</p>
+        } @else {
+          <ul class="availability__list">
+            @for (exception of exceptions(); track exception.id) {
+              <li class="availability__row">
+                <span class="availability__row-main">
+                  <strong>{{ exception.date }}</strong>
+                  @if (exception.closed) {
+                    Cerrado todo el día
+                  } @else {
+                    {{ exception.startTime }}–{{ exception.endTime }}
+                  }
+                </span>
+                <button class="button button--ghost" type="button" (click)="deleteException(exception.id)">
+                  Eliminar
+                </button>
+              </li>
+            }
+          </ul>
+        }
+      }
+    }
+  </article>
+</section>

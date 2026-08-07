@@ -1,0 +1,89 @@
+<section class="services">
+  <header class="services__toolbar reveal is-visible">
+    <div>
+      <p class="services__eyebrow">Catálogo</p>
+      <h1 class="services__page-title">Tus servicios</h1>
+    </div>
+  </header>
+
+  <form class="card services__form reveal is-visible" [formGroup]="form" (ngSubmit)="submit()">
+    <h2 class="card__title">{{ editingId() ? 'Editar servicio' : 'Nuevo servicio' }}</h2>
+
+    <div class="services__form-grid">
+      <label class="field">
+        <span class="field__label">Nombre</span>
+        <input class="field__input" type="text" formControlName="name" placeholder="Corte de pelo" />
+        @if (form.controls.name.touched && form.controls.name.invalid) {
+          <span class="field__error">Escribe un nombre.</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field__label">Duración (min)</span>
+        <input class="field__input" type="number" formControlName="durationMin" min="1" max="1440" />
+        @if (form.controls.durationMin.touched && form.controls.durationMin.invalid) {
+          <span class="field__error">Entre 1 y 1440 minutos.</span>
+        }
+      </label>
+
+      <label class="field">
+        <span class="field__label">Precio (CLP)</span>
+        <input class="field__input" type="number" formControlName="priceClp" min="0" />
+        @if (form.controls.priceClp.touched && form.controls.priceClp.invalid) {
+          <span class="field__error">El precio no puede ser negativo.</span>
+        }
+      </label>
+    </div>
+
+    @if (formError(); as error) {
+      <p class="field__error" role="alert">{{ error }}</p>
+    }
+
+    <div class="services__form-actions">
+      @if (editingId()) {
+        <button class="button button--ghost" type="button" (click)="cancelEdit()">Cancelar</button>
+      }
+      <button class="button" type="submit" [disabled]="submitting()">
+        @if (submitting()) {
+          <span class="spinner" aria-hidden="true"></span>
+        }
+        {{ editingId() ? 'Guardar cambios' : 'Crear servicio' }}
+      </button>
+    </div>
+  </form>
+
+  @switch (state().status) {
+    @case ('loading') {
+      <p class="notice">Cargando…</p>
+    }
+    @case ('error') {
+      <p class="notice">No pudimos cargar tus servicios.</p>
+    }
+    @default {
+      @if (rows().length === 0) {
+        <p class="notice">Todavía no tienes servicios. Crea el primero arriba.</p>
+      } @else {
+        <div class="services__grid">
+          @for (service of rows(); track service.id) {
+            <article class="card services__item" [class.services__item--inactive]="!service.active">
+              <div class="card__heading">
+                <span class="card__dot" aria-hidden="true"></span>
+                <h3 class="card__title">{{ service.name }}</h3>
+                @if (!service.active) {
+                  <span class="services__badge">Inactivo</span>
+                }
+              </div>
+              <p class="services__meta">{{ service.durationMin }} min · {{ formatClp(service.priceClp) }}</p>
+              <div class="services__item-actions">
+                <button class="button button--ghost" type="button" (click)="startEdit(service)">Editar</button>
+                <button class="button button--ghost" type="button" (click)="toggleActive(service)">
+                  {{ service.active ? 'Desactivar' : 'Reactivar' }}
+                </button>
+              </div>
+            </article>
+          }
+        </div>
+      }
+    }
+  }
+</section>

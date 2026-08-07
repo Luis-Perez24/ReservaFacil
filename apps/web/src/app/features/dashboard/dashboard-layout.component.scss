@@ -8,6 +8,7 @@
   top: 0;
   z-index: 10;
   display: flex;
+  flex-wrap: wrap;
   align-items: center;
   justify-content: space-between;
   gap: var(--space-4);
@@ -15,6 +16,33 @@
   background: var(--paper);
   border-bottom: 1px solid var(--line);
   box-shadow: 0 4px 20px -12px rgb(0 0 0 / 0.12);
+}
+
+.dashboard__nav {
+  display: flex;
+  gap: var(--space-1);
+}
+
+.dashboard__nav-link {
+  padding: var(--space-2) var(--space-3);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  font-weight: 500;
+  color: var(--ink-soft);
+  text-decoration: none;
+  transition:
+    color 160ms var(--ease-out),
+    background-color 160ms var(--ease-out);
+
+  &:hover {
+    color: var(--ink);
+    background: var(--surface);
+  }
+
+  &.is-active {
+    color: var(--brand);
+    background: color-mix(in oklab, var(--brand) 10%, transparent);
+  }
 }
 
 .dashboard__brand {

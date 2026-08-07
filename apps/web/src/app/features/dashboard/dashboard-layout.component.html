@@ -5,6 +5,12 @@
       <h1 class="dashboard__business">{{ businessName() ?? 'Panel' }}</h1>
     </div>
 
+    <nav class="dashboard__nav">
+      <a class="dashboard__nav-link" routerLink="/dashboard" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Métricas</a>
+      <a class="dashboard__nav-link" routerLink="/dashboard/servicios" routerLinkActive="is-active">Servicios</a>
+      <a class="dashboard__nav-link" routerLink="/dashboard/horarios" routerLinkActive="is-active">Horarios</a>
+    </nav>
+
     <div class="dashboard__account">
       @if (user(); as user) {
         <span class="dashboard__user">{{ user.fullName }}</span>
