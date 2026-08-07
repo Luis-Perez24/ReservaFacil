@@ -26,6 +26,7 @@ export class LoginPageComponent {
 
   readonly submitting = signal(false);
   readonly loginError = signal<string | null>(null);
+  readonly showPassword = signal(false);
 
   readonly form = this.fb.nonNullable.group({
     email: ['', [Validators.required, Validators.email]],
@@ -58,5 +59,21 @@ export class LoginPageComponent {
           );
         },
       });
+  }
+
+  toggleShowPassword(): void {
+    this.showPassword.update((value) => !value);
+  }
+
+  /**
+   * Brillo que sigue al cursor en el panel de marca. Se escribe directo en
+   * el DOM (sin signal) a propósito: mousemove dispara muchas veces por
+   * segundo, y pasar eso por change detection sería trabajo de sobra para
+   * algo que no es estado de la app, es solo feedback visual.
+   */
+  onBrandMouseMove(event: MouseEvent, panel: HTMLElement): void {
+    const rect = panel.getBoundingClientRect();
+    panel.style.setProperty('--mouse-x', `${event.clientX - rect.left}px`);
+    panel.style.setProperty('--mouse-y', `${event.clientY - rect.top}px`);
   }
 }

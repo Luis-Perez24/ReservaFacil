@@ -7,6 +7,27 @@
   display: flex;
   flex-wrap: wrap;
   align-items: end;
+  justify-content: space-between;
+  gap: var(--space-4);
+}
+
+.analytics__eyebrow {
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.06em;
+  text-transform: uppercase;
+  color: var(--brand);
+  margin-bottom: var(--space-1);
+}
+
+.analytics__page-title {
+  font-family: var(--font-display);
+  font-size: 1.5rem;
+  font-weight: 700;
+}
+
+.analytics__range {
+  display: flex;
   gap: var(--space-4);
 }
 
@@ -14,42 +35,100 @@
   width: 10rem;
 }
 
-.analytics__total {
-  margin-left: auto;
+/* ── Tarjetas de resumen ─────────────────────────────────────────────── */
+.analytics__stats {
   display: grid;
-  gap: var(--space-1);
-  text-align: right;
+  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
+  gap: var(--space-4);
 }
 
-.analytics__total-label {
-  font-size: 0.8rem;
+.stat {
+  display: grid;
+  gap: var(--space-2);
+  padding: var(--space-6);
+  background: var(--paper);
+  border: 1px solid var(--line);
+  border-radius: 16px;
+}
+
+.stat__label {
+  font-size: 0.85rem;
   color: var(--ink-soft);
 }
 
-.analytics__total-value {
+.stat__value {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 2rem;
   font-weight: 700;
+}
+
+/* La tarjeta principal (ingresos) lleva el color de marca; el resto queda
+   neutro para que ese número siga siendo el que más pesa a la vista. */
+.stat--accent {
+  background: linear-gradient(
+    155deg,
+    color-mix(in oklab, var(--brand) 92%, black) 0%,
+    color-mix(in oklab, var(--brand) 70%, black) 100%
+  );
+  border-color: transparent;
+  color: var(--paper);
+}
+
+.stat--accent .stat__label {
+  color: color-mix(in oklab, var(--paper) 75%, transparent);
 }
 
 .analytics__grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(20rem, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(22rem, 1fr));
   gap: var(--space-6);
+  /* Filas parejas: si una tarjeta de la fila es más alta, las demás estiran
+     hasta igualarla (default de grid) — así el gráfico de cada una puede
+     crecer con flex:1 y ocupar todo el alto real, no un número fijo. */
+  align-items: stretch;
 }
 
 .card {
-  display: grid;
+  display: flex;
+  flex-direction: column;
   gap: var(--space-3);
   padding: var(--space-6);
   background: var(--paper);
   border: 1px solid var(--line);
   border-radius: 16px;
-  align-content: start;
+  box-shadow:
+    0 1px 2px rgb(0 0 0 / 0.03),
+    0 12px 28px -18px rgb(0 0 0 / 0.14);
+  transition:
+    box-shadow 220ms var(--ease-out),
+    transform 220ms var(--ease-out),
+    border-color 220ms var(--ease-out);
+}
+
+.card:hover {
+  border-color: color-mix(in oklab, var(--brand) 30%, var(--line));
+  box-shadow:
+    0 2px 6px rgb(0 0 0 / 0.05),
+    0 20px 44px -20px rgb(0 0 0 / 0.22);
+  transform: translateY(-3px);
 }
 
 .card--wide {
   grid-column: 1 / -1;
+}
+
+.card__heading {
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+}
+
+.card__dot {
+  width: 0.5rem;
+  height: 0.5rem;
+  border-radius: 50%;
+  background: var(--brand);
+  flex-shrink: 0;
 }
 
 .card__title {
@@ -63,10 +142,21 @@
   color: var(--ink-soft);
 }
 
+/* El gráfico crece con la tarjeta (flex:1) en vez de una altura fija chica;
+   min-height es solo el piso para pantallas angostas donde la tarjeta no
+   estira tanto. */
 .card__chart {
-  height: 16rem;
+  flex: 1;
+  min-height: 20rem;
 }
 
 .card__chart--wide {
-  height: 18rem;
+  flex: 1;
+  min-height: 22rem;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .card {
+    transition: none;
+  }
 }

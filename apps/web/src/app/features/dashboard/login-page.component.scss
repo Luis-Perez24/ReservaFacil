@@ -1,29 +1,288 @@
 .login {
   min-height: 100dvh;
   display: grid;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 56rem) {
+    grid-template-columns: 1.1fr 1fr;
+  }
+}
+
+/* ── Panel de marca: solo visible desde tablet en adelante ─────────────── */
+.login__brand {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-16);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 100% at 0% 0%, #2a3b8f 0%, transparent 55%),
+    linear-gradient(155deg, #12172b 0%, #1a1613 65%, #241a12 100%);
+  color: var(--paper);
+  --mouse-x: 50%;
+  --mouse-y: 50%;
+
+  @media (min-width: 56rem) {
+    display: flex;
+  }
+}
+
+/* Sigue al cursor: solo se prende con :hover porque en touch no hay mouse
+   que seguir, y `pointer-events: none` para que nunca robe el clic. */
+.login__spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    15rem circle at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.14),
+    transparent 65%
+  );
+  opacity: 0;
+  transition: opacity 220ms var(--ease-out);
+  pointer-events: none;
+}
+
+.login__brand:hover .login__spotlight {
+  opacity: 1;
+}
+
+/* Manchas de luz difusas: dan profundidad sin pesar nada (solo CSS, sin imágenes). */
+.login__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+  animation: drift 16s ease-in-out infinite alternate;
+}
+
+.login__glow--one {
+  width: 22rem;
+  height: 22rem;
+  top: -6rem;
+  right: -4rem;
+  background: var(--brand);
+}
+
+.login__glow--two {
+  width: 16rem;
+  height: 16rem;
+  bottom: -4rem;
+  left: -2rem;
+  background: #b45309;
+  opacity: 0.35;
+  animation-delay: -8s;
+}
+
+@keyframes drift {
+  to {
+    transform: translate(2rem, 1.5rem) scale(1.08);
+  }
+}
+
+/* Grilla sutil de fondo, para que el panel no quede como un color plano. */
+.login__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 2.5rem 2.5rem;
+  -webkit-mask-image: radial-gradient(80% 60% at 30% 30%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(80% 60% at 30% 30%, #000 0%, transparent 75%);
+}
+
+.login__brand-content {
+  position: relative;
+  max-width: 26rem;
+}
+
+/* Entrada en cascada: cada elemento define su propio --delay inline. */
+.login__fade-in {
+  opacity: 0;
+  transform: translateY(14px);
+  animation: brand-fade-in 700ms var(--ease-out) forwards;
+  animation-delay: var(--delay, 0ms);
+}
+
+@keyframes brand-fade-in {
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+.login__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: var(--space-8);
+}
+
+.login__headline {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3vw + 1rem, 2.75rem);
+  font-weight: 700;
+  line-height: 1.12;
+  margin-bottom: var(--space-4);
+}
+
+/* Pasada de luz sobre el título: un degradé animado recortado al texto. */
+.login__shimmer {
+  background: linear-gradient(
+    100deg,
+    rgba(255, 255, 255, 0.75) 30%,
+    #fff 45%,
+    rgba(255, 255, 255, 0.75) 60%
+  );
+  background-size: 220% 100%;
+  background-position: 100% 0;
+  -webkit-background-clip: text;
+  background-clip: text;
+  color: transparent;
+  animation: shimmer-sweep 5s var(--ease-out) 900ms infinite;
+}
+
+@keyframes shimmer-sweep {
+  0%,
+  35% {
+    background-position: 100% 0;
+  }
+  65%,
+  100% {
+    background-position: -60% 0;
+  }
+}
+
+.login__copy {
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.6;
+  max-width: 24rem;
+}
+
+/* Chispitas: puntos diminutos que titilan cerca del texto, nunca encima. */
+.login__sparkle {
+  position: absolute;
+  width: 4px;
+  height: 4px;
+  border-radius: 50%;
+  background: #fff;
+  box-shadow: 0 0 8px 1px rgba(255, 255, 255, 0.8);
+  opacity: 0;
+  animation: twinkle 3.2s ease-in-out infinite;
+}
+
+.login__sparkle--one {
+  top: 22%;
+  left: 62%;
+  animation-delay: 400ms;
+}
+
+.login__sparkle--two {
+  top: 68%;
+  left: 78%;
+  animation-delay: 1600ms;
+}
+
+.login__sparkle--three {
+  top: 45%;
+  left: 85%;
+  width: 3px;
+  height: 3px;
+  animation-delay: 2500ms;
+}
+
+.login__sparkle--four {
+  top: 14%;
+  left: 40%;
+  width: 3px;
+  height: 3px;
+  animation-delay: 1100ms;
+}
+
+.login__sparkle--five {
+  top: 78%;
+  left: 30%;
+  animation-delay: 3200ms;
+}
+
+@keyframes twinkle {
+  0%,
+  100% {
+    opacity: 0;
+    transform: scale(0.6);
+  }
+  50% {
+    opacity: 0.9;
+    transform: scale(1.3);
+  }
+}
+
+/* ── Lado del formulario ─────────────────────────────────────────────── */
+.login__form-side {
+  position: relative;
+  display: grid;
   place-items: center;
   padding: var(--space-6);
   background: var(--surface);
+  overflow: hidden;
+}
+
+/* Luz difusa detrás de la tarjeta: sin esto, el fondo queda plano y sin
+   profundidad al lado del panel de marca, que sí la tiene. */
+.login__ambient {
+  position: absolute;
+  top: 50%;
+  left: 50%;
+  width: 36rem;
+  height: 36rem;
+  transform: translate(-50%, -50%);
+  background: radial-gradient(
+    circle,
+    color-mix(in oklab, var(--brand) 30%, transparent) 0%,
+    transparent 68%
+  );
+  pointer-events: none;
+}
+
+/* Grano fino vía SVG (feTurbulence), no una imagen: textura, no una foto de ruido. */
+.login__grain {
+  position: absolute;
+  inset: 0;
+  opacity: 0.05;
+  mix-blend-mode: overlay;
+  pointer-events: none;
+  background-image: url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' viewBox='0 0 200 200'%3E%3Cfilter id='n'%3E%3CfeTurbulence type='fractalNoise' baseFrequency='0.85' numOctaves='2' stitchTiles='stitch'/%3E%3C/filter%3E%3Crect width='100%25' height='100%25' filter='url(%23n)'/%3E%3C/svg%3E");
 }
 
 .login__card {
+  position: relative;
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-6);
   width: min(100%, 24rem);
   padding: var(--space-8);
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 20px;
+  box-shadow:
+    0 24px 60px -20px rgb(0 0 0 / 0.18),
+    0 10px 34px -16px color-mix(in oklab, var(--brand) 45%, transparent);
+}
+
+.login__form-header {
+  display: grid;
+  gap: var(--space-1);
 }
 
 .login__title {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
 }
 
 .login__subtitle {
-  margin-top: calc(var(--space-2) * -1);
   color: var(--ink-soft);
 }
 
@@ -31,4 +290,49 @@
   margin-top: var(--space-2);
   width: 100%;
   text-align: center;
+  padding-block: var(--space-4);
+  font-size: 1rem;
+  background: var(--brand);
+}
+
+.login__submit:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+.login__password-wrap {
+  position: relative;
+  display: block;
+}
+
+.login__password-wrap .field__input {
+  width: 100%;
+  padding-right: 2.75rem;
+}
+
+.login__password-toggle {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 140ms var(--ease-out), background 140ms var(--ease-out);
+}
+
+.login__password-toggle:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login__glow {
+    animation: none;
+  }
 }

@@ -9,7 +9,13 @@ import { daysBeforeIso, eachDateIso, todayIso } from './date-range';
 
 type DailyState =
   | { status: 'loading' }
-  | { status: 'ready'; dates: string[]; revenueByDate: Map<string, number>; occupancyByDate: Map<string, number | null> }
+  | {
+      status: 'ready';
+      dates: string[];
+      revenueByDate: Map<string, number>;
+      occupancyByDate: Map<string, number | null>;
+      reservationsByDate: Map<string, number>;
+    }
   | { status: 'error' };
 
 type TopServicesState =
@@ -71,13 +77,15 @@ export class AnalyticsPageComponent {
             const dates = eachDateIso(from, to);
             const revenueByDate = new Map(dates.map((d) => [d, 0]));
             const occupancyByDate = new Map<string, number | null>(dates.map((d) => [d, null]));
+            const reservationsByDate = new Map(dates.map((d) => [d, 0]));
 
             for (const row of rows) {
               revenueByDate.set(row.date, row.revenueClp);
               occupancyByDate.set(row.date, row.occupancyRate);
+              reservationsByDate.set(row.date, row.reservationsCount);
             }
 
-            return { status: 'ready', dates, revenueByDate, occupancyByDate };
+            return { status: 'ready', dates, revenueByDate, occupancyByDate, reservationsByDate };
           }),
           catchError(() => of<DailyState>({ status: 'error' })),
           startWith<DailyState>({ status: 'loading' }),
@@ -107,6 +115,15 @@ export class AnalyticsPageComponent {
       return null;
     }
     return CLP.format([...state.revenueByDate.values()].reduce((sum, value) => sum + value, 0));
+  });
+
+  /** Suma simple sobre el rango: sumar reservas por día es seguro (a diferencia de promediar una tasa, adr/0008). */
+  readonly totalReservations = computed(() => {
+    const state = this.daily();
+    if (state.status !== 'ready') {
+      return null;
+    }
+    return [...state.reservationsByDate.values()].reduce((sum, value) => sum + value, 0);
   });
 
   readonly revenueChart = computed<ChartConfiguration | null>(() => {
