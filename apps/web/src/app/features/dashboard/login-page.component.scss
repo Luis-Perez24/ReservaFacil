@@ -299,6 +299,38 @@
   opacity: 0.92;
 }
 
+.login__password-wrap {
+  position: relative;
+  display: block;
+}
+
+.login__password-wrap .field__input {
+  width: 100%;
+  padding-right: 2.75rem;
+}
+
+.login__password-toggle {
+  position: absolute;
+  top: 50%;
+  right: var(--space-2);
+  transform: translateY(-50%);
+  display: grid;
+  place-items: center;
+  width: 2.25rem;
+  height: 2.25rem;
+  border: 0;
+  border-radius: 8px;
+  background: transparent;
+  color: var(--ink-soft);
+  cursor: pointer;
+  transition: color 140ms var(--ease-out), background 140ms var(--ease-out);
+}
+
+.login__password-toggle:hover {
+  color: var(--ink);
+  background: var(--surface);
+}
+
 @media (prefers-reduced-motion: reduce) {
   .login__glow {
     animation: none;

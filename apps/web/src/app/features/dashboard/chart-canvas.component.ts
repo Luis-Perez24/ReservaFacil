@@ -20,6 +20,7 @@ import { Chart, ChartConfiguration } from 'chart.js/auto';
   selector: 'app-chart-canvas',
   standalone: true,
   template: '<canvas #canvas></canvas>',
+  styleUrl: './chart-canvas.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
 })
 export class ChartCanvasComponent implements AfterViewInit, OnDestroy {

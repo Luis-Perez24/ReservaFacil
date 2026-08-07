@@ -1,0 +1,9 @@
+/* Sin esto, el host queda `display: inline` (default de un elemento custom):
+   nunca ocupa el alto/ancho real del contenedor, y Chart.js termina
+   dibujando al tamaño mínimo en vez de llenar la tarjeta. */
+:host {
+  display: block;
+  position: relative;
+  width: 100%;
+  height: 100%;
+}
