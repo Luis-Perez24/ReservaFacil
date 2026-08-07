@@ -1,6 +1,107 @@
 .login {
   min-height: 100dvh;
   display: grid;
+  grid-template-columns: 1fr;
+
+  @media (min-width: 56rem) {
+    grid-template-columns: 1.1fr 1fr;
+  }
+}
+
+/* ── Panel de marca: solo visible desde tablet en adelante ─────────────── */
+.login__brand {
+  position: relative;
+  display: none;
+  flex-direction: column;
+  justify-content: center;
+  padding: var(--space-16);
+  overflow: hidden;
+  background:
+    radial-gradient(120% 100% at 0% 0%, #2a3b8f 0%, transparent 55%),
+    linear-gradient(155deg, #12172b 0%, #1a1613 65%, #241a12 100%);
+  color: var(--paper);
+
+  @media (min-width: 56rem) {
+    display: flex;
+  }
+}
+
+/* Manchas de luz difusas: dan profundidad sin pesar nada (solo CSS, sin imágenes). */
+.login__glow {
+  position: absolute;
+  border-radius: 50%;
+  filter: blur(70px);
+  opacity: 0.55;
+  animation: drift 16s ease-in-out infinite alternate;
+}
+
+.login__glow--one {
+  width: 22rem;
+  height: 22rem;
+  top: -6rem;
+  right: -4rem;
+  background: var(--brand);
+}
+
+.login__glow--two {
+  width: 16rem;
+  height: 16rem;
+  bottom: -4rem;
+  left: -2rem;
+  background: #b45309;
+  opacity: 0.35;
+  animation-delay: -8s;
+}
+
+@keyframes drift {
+  to {
+    transform: translate(2rem, 1.5rem) scale(1.08);
+  }
+}
+
+/* Grilla sutil de fondo, para que el panel no quede como un color plano. */
+.login__grid {
+  position: absolute;
+  inset: 0;
+  background-image:
+    linear-gradient(rgba(255, 255, 255, 0.05) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(255, 255, 255, 0.05) 1px, transparent 1px);
+  background-size: 2.5rem 2.5rem;
+  -webkit-mask-image: radial-gradient(80% 60% at 30% 30%, #000 0%, transparent 75%);
+  mask-image: radial-gradient(80% 60% at 30% 30%, #000 0%, transparent 75%);
+}
+
+.login__brand-content {
+  position: relative;
+  max-width: 26rem;
+}
+
+.login__mark {
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 1.1rem;
+  letter-spacing: 0.01em;
+  color: rgba(255, 255, 255, 0.75);
+  margin-bottom: var(--space-8);
+}
+
+.login__headline {
+  font-family: var(--font-display);
+  font-size: clamp(2rem, 3vw + 1rem, 2.75rem);
+  font-weight: 700;
+  line-height: 1.12;
+  margin-bottom: var(--space-4);
+}
+
+.login__copy {
+  color: rgba(255, 255, 255, 0.68);
+  line-height: 1.6;
+  max-width: 24rem;
+}
+
+/* ── Lado del formulario ─────────────────────────────────────────────── */
+.login__form-side {
+  display: grid;
   place-items: center;
   padding: var(--space-6);
   background: var(--surface);
@@ -8,22 +109,27 @@
 
 .login__card {
   display: grid;
-  gap: var(--space-4);
+  gap: var(--space-5);
   width: min(100%, 24rem);
   padding: var(--space-8);
   background: var(--paper);
   border: 1px solid var(--line);
-  border-radius: 16px;
+  border-radius: 20px;
+  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.18);
+}
+
+.login__form-header {
+  display: grid;
+  gap: var(--space-1);
 }
 
 .login__title {
   font-family: var(--font-display);
-  font-size: 1.5rem;
+  font-size: 1.6rem;
   font-weight: 700;
 }
 
 .login__subtitle {
-  margin-top: calc(var(--space-2) * -1);
   color: var(--ink-soft);
 }
 
@@ -31,4 +137,17 @@
   margin-top: var(--space-2);
   width: 100%;
   text-align: center;
+  padding-block: var(--space-4);
+  font-size: 1rem;
+  background: var(--brand);
+}
+
+.login__submit:hover:not(:disabled) {
+  opacity: 0.92;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .login__glow {
+    animation: none;
+  }
 }
