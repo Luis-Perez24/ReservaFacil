@@ -18,3 +18,9 @@ allowBuilds:
   lmdb: true
   msgpackr-extract: true
   nice-napi: true
+  # SDK de Gemini (día 11, adr/0004) y su dependencia protobufjs. El
+  # postinstall de protobufjs solo advierte por consola sobre versiones de
+  # dependientes incompatibles (revisado en scripts/postinstall.js), sin red
+  # ni escritura fuera de su log; @google/genai es el SDK oficial de Google.
+  '@google/genai': true
+  protobufjs: true

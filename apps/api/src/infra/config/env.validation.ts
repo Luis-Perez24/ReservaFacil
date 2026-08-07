@@ -138,6 +138,16 @@ export class EnvironmentVariables {
   @IsString()
   @IsNotEmpty()
   SMTP_FROM!: string;
+
+  // Asistente IA (día 11, adr/0004): function calling con Gemini. Gemini
+  // nunca toca la BD directamente, solo elige qué función ejecutar.
+  @IsString()
+  @IsNotEmpty()
+  GEMINI_API_KEY!: string;
+
+  @IsOptional()
+  @IsString()
+  GEMINI_MODEL?: string;
 }
 
 export function validateEnv(config: Record<string, unknown>): EnvironmentVariables {

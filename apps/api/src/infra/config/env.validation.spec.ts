@@ -22,6 +22,7 @@ const envValido = {
   SMTP_HOST: 'localhost',
   SMTP_PORT: '1025',
   SMTP_FROM: 'ReservaFácil <no-reply@reservafacil.cl>',
+  GEMINI_API_KEY: 'e'.repeat(32),
 };
 
 describe('validateEnv', () => {

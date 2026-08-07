@@ -17,6 +17,7 @@ const MODULOS = join(__dirname, 'modules');
 
 /** Quién puede depender de quién (`02-arquitectura.md`). */
 const PERMITIDAS: Record<string, readonly string[]> = {
+  ai: ['catalog', 'tenants'],
   auth: ['tenants'],
   catalog: ['tenants'],
   notifications: ['reservations', 'tenants', 'catalog', 'auth'],
