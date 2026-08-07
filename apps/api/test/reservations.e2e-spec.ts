@@ -355,4 +355,144 @@ describe('Reservations (e2e)', () => {
         .expect(401);
     });
   });
+
+  describe('GET /reservations', () => {
+    async function seedForAgenda(params: {
+      tenantId: string;
+      serviceId: string;
+      startsAt: string;
+      clientName?: string;
+      clientEmail?: string;
+      clientPhone?: string | null;
+      status?: 'PENDING' | 'PAID' | 'CONFIRMED' | 'EXPIRED' | 'CANCELLED';
+    }): Promise<string> {
+      const clientEmail =
+        params.clientEmail ?? `agenda-${Math.random().toString(36).slice(2)}@test.cl`;
+
+      const [client]: Array<{ id: string }> = await dataSource.query(
+        `INSERT INTO users (email, password_hash, full_name, phone, role)
+         VALUES ($1, 'no-importa', $2, $3, 'CLIENT') RETURNING id`,
+        [clientEmail, params.clientName ?? 'Cliente Agenda', params.clientPhone ?? '+56922222222'],
+      );
+
+      const endsAt = new Date(new Date(params.startsAt).getTime() + 30 * 60_000).toISOString();
+
+      const [reserva]: Array<{ id: string }> = await dataSource.query(
+        `INSERT INTO reservations
+           (tenant_id, service_id, client_id, starts_at, ends_at, status, price_clp)
+         VALUES ($1, $2, $3, $4, $5, $6, 12000)
+         RETURNING id`,
+        [
+          params.tenantId,
+          params.serviceId,
+          client.id,
+          params.startsAt,
+          endsAt,
+          params.status ?? 'CONFIRMED',
+        ],
+      );
+
+      return reserva.id;
+    }
+
+    it('devuelve las reservas del negocio con nombre de servicio y datos del cliente', async () => {
+      const { token, tenantId, serviceId } = await setupNegocio();
+      await seedForAgenda({
+        tenantId,
+        serviceId,
+        startsAt: `${FUTURE_MONDAY}T12:00:00.000Z`,
+        clientName: 'Ana Cliente',
+        clientEmail: 'ana@test.cl',
+        clientPhone: '+56933333333',
+      });
+
+      const respuesta = await request(app.getHttpServer())
+        .get('/reservations')
+        .query({ from: FUTURE_MONDAY, to: FUTURE_MONDAY })
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(respuesta.body).toHaveLength(1);
+      expect(respuesta.body[0]).toMatchObject({
+        serviceId,
+        serviceName: 'Corte de pelo',
+        clientName: 'Ana Cliente',
+        clientEmail: 'ana@test.cl',
+        clientPhone: '+56933333333',
+        status: 'CONFIRMED',
+      });
+    });
+
+    it('filtra por rango de fechas', async () => {
+      const { token, tenantId, serviceId } = await setupNegocio();
+      await seedForAgenda({ tenantId, serviceId, startsAt: `${FUTURE_MONDAY}T12:00:00.000Z` });
+      // Fuera del rango que se va a consultar.
+      await seedForAgenda({ tenantId, serviceId, startsAt: '2027-02-01T12:00:00.000Z' });
+
+      const respuesta = await request(app.getHttpServer())
+        .get('/reservations')
+        .query({ from: FUTURE_MONDAY, to: FUTURE_MONDAY })
+        .set('Authorization', `Bearer ${token}`)
+        .expect(200);
+
+      expect(respuesta.body).toHaveLength(1);
+    });
+
+    it('no muestra reservas de otro negocio (aislamiento de tenant)', async () => {
+      const { token: tokenA, tenantId: tenantIdA, serviceId: serviceIdA } = await setupNegocio();
+      const otroNegocio = await registerBusiness('barberia-b', 'b@test.cl');
+      const servicioB = await request(app.getHttpServer())
+        .post('/services')
+        .set('Authorization', `Bearer ${otroNegocio.token}`)
+        .send({ name: 'Corte B', durationMin: 30, priceClp: 9000 })
+        .expect(201);
+
+      await seedForAgenda({
+        tenantId: tenantIdA,
+        serviceId: serviceIdA,
+        startsAt: `${FUTURE_MONDAY}T12:00:00.000Z`,
+      });
+      await seedForAgenda({
+        tenantId: otroNegocio.tenantId,
+        serviceId: servicioB.body.id,
+        startsAt: `${FUTURE_MONDAY}T12:00:00.000Z`,
+      });
+
+      const respuesta = await request(app.getHttpServer())
+        .get('/reservations')
+        .query({ from: FUTURE_MONDAY, to: FUTURE_MONDAY })
+        .set('Authorization', `Bearer ${tokenA}`)
+        .expect(200);
+
+      expect(respuesta.body).toHaveLength(1);
+      expect(respuesta.body[0].serviceId).toBe(serviceIdA);
+    });
+
+    it('rechaza sin token con 401', async () => {
+      await request(app.getHttpServer())
+        .get('/reservations')
+        .query({ from: FUTURE_MONDAY, to: FUTURE_MONDAY })
+        .expect(401);
+    });
+
+    it('responde 400 si "from" es posterior a "to"', async () => {
+      const { token } = await setupNegocio();
+
+      await request(app.getHttpServer())
+        .get('/reservations')
+        .query({ from: '2027-02-01', to: '2027-01-01' })
+        .set('Authorization', `Bearer ${token}`)
+        .expect(400);
+    });
+
+    it('responde 400 si el formato de fecha no es YYYY-MM-DD', async () => {
+      const { token } = await setupNegocio();
+
+      await request(app.getHttpServer())
+        .get('/reservations')
+        .query({ from: '01-01-2027', to: '2027-01-31' })
+        .set('Authorization', `Bearer ${token}`)
+        .expect(400);
+    });
+  });
 });
