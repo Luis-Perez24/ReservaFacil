@@ -15,8 +15,15 @@ type DailyState =
       revenueByDate: Map<string, number>;
       occupancyByDate: Map<string, number | null>;
       reservationsByDate: Map<string, number>;
+      totalNoShowCount: number;
+      totalAttendanceChecked: number;
     }
   | { status: 'error' };
+
+const PERCENT = new Intl.NumberFormat('es-CL', {
+  style: 'percent',
+  maximumFractionDigits: 0,
+});
 
 type TopServicesState =
   | { status: 'loading' }
@@ -78,14 +85,26 @@ export class AnalyticsPageComponent {
             const revenueByDate = new Map(dates.map((d) => [d, 0]));
             const occupancyByDate = new Map<string, number | null>(dates.map((d) => [d, null]));
             const reservationsByDate = new Map(dates.map((d) => [d, 0]));
+            let totalNoShowCount = 0;
+            let totalAttendanceChecked = 0;
 
             for (const row of rows) {
               revenueByDate.set(row.date, row.revenueClp);
               occupancyByDate.set(row.date, row.occupancyRate);
               reservationsByDate.set(row.date, row.reservationsCount);
+              totalNoShowCount += row.noShowCount;
+              totalAttendanceChecked += row.attendanceCheckedCount;
             }
 
-            return { status: 'ready', dates, revenueByDate, occupancyByDate, reservationsByDate };
+            return {
+              status: 'ready',
+              dates,
+              revenueByDate,
+              occupancyByDate,
+              reservationsByDate,
+              totalNoShowCount,
+              totalAttendanceChecked,
+            };
           }),
           catchError(() => of<DailyState>({ status: 'error' })),
           startWith<DailyState>({ status: 'loading' }),
@@ -124,6 +143,20 @@ export class AnalyticsPageComponent {
       return null;
     }
     return [...state.reservationsByDate.values()].reduce((sum, value) => sum + value, 0);
+  });
+
+  /**
+   * Suma numerador y denominador del rango completo y divide al final —nunca
+   * promediar la tasa diaria (adr/0008), mismo motivo por el que `totalRevenue`
+   * suma en vez de promediar precios. `null` mientras nadie haya marcado
+   * asistencia en el rango: no hay denominador con el que dividir.
+   */
+  readonly noShowRate = computed(() => {
+    const state = this.daily();
+    if (state.status !== 'ready' || state.totalAttendanceChecked === 0) {
+      return null;
+    }
+    return PERCENT.format(state.totalNoShowCount / state.totalAttendanceChecked);
   });
 
   readonly revenueChart = computed<ChartConfiguration | null>(() => {

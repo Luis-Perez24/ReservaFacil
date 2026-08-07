@@ -28,6 +28,11 @@
       <p class="stat__label">Reservas en el rango</p>
       <p class="stat__value">{{ totalReservations() ?? '—' }}</p>
     </article>
+
+    <article class="stat">
+      <p class="stat__label">Tasa de no-show</p>
+      <p class="stat__value">{{ noShowRate() ?? '—' }}</p>
+    </article>
   </div>
 
   <div class="analytics__grid">

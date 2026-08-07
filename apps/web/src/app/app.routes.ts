@@ -54,6 +54,13 @@ export const routes: Routes = [
             (m) => m.AvailabilityPageComponent,
           ),
       },
+      {
+        path: 'agenda',
+        loadComponent: () =>
+          import('./features/dashboard/agenda-page.component').then(
+            (m) => m.AgendaPageComponent,
+          ),
+      },
     ],
   },
   {
