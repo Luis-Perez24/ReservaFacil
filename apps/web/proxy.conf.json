@@ -9,6 +9,21 @@
     "secure": false,
     "changeOrigin": true
   },
+  "/auth": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/tenants": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "changeOrigin": true
+  },
+  "/analytics": {
+    "target": "http://localhost:3000",
+    "secure": false,
+    "changeOrigin": true
+  },
   "/socket.io": {
     "target": "http://localhost:3000",
     "secure": false,

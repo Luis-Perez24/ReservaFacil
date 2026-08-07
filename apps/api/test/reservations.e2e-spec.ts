@@ -239,4 +239,120 @@ describe('Reservations (e2e)', () => {
       expect(Number(count)).toBe(1);
     });
   });
+
+  describe('PATCH /reservations/:id/attendance', () => {
+    const PAST_STARTS_AT = '2024-01-01T12:00:00.000Z';
+    const PAST_ENDS_AT = '2024-01-01T12:30:00.000Z';
+
+    async function seedConfirmed(tenantId: string, serviceId: string, startsAt: string) {
+      const [client]: Array<{ id: string }> = await dataSource.query(
+        `INSERT INTO users (email, password_hash, full_name, role)
+         VALUES ($1, 'no-importa', 'Cliente Sembrado', 'CLIENT') RETURNING id`,
+        [`seed-${Math.random().toString(36).slice(2)}@test.cl`],
+      );
+      const endsAt = new Date(new Date(startsAt).getTime() + 30 * 60_000).toISOString();
+      const [reserva]: Array<{ id: string }> = await dataSource.query(
+        `INSERT INTO reservations
+           (tenant_id, service_id, client_id, starts_at, ends_at, status, price_clp)
+         VALUES ($1, $2, $3, $4, $5, 'CONFIRMED', 12000)
+         RETURNING id`,
+        [tenantId, serviceId, client.id, startsAt, endsAt],
+      );
+      return reserva.id;
+    }
+
+    it('marca una CONFIRMED ya pasada como asistida y lo persiste', async () => {
+      const { token, tenantId, serviceId } = await setupNegocio();
+      const reservationId = await seedConfirmed(tenantId, serviceId, PAST_STARTS_AT);
+
+      const respuesta = await request(app.getHttpServer())
+        .patch(`/reservations/${reservationId}/attendance`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ attended: true })
+        .expect(200);
+
+      expect(respuesta.body.attended).toBe(true);
+
+      const [{ attended }]: Array<{ attended: boolean }> = await dataSource.query(
+        `SELECT attended FROM reservations WHERE id = $1`,
+        [reservationId],
+      );
+      expect(attended).toBe(true);
+    });
+
+    it('es corregible: volver a marcarla cambia el valor', async () => {
+      const { token, tenantId, serviceId } = await setupNegocio();
+      const reservationId = await seedConfirmed(tenantId, serviceId, PAST_STARTS_AT);
+
+      await request(app.getHttpServer())
+        .patch(`/reservations/${reservationId}/attendance`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ attended: true })
+        .expect(200);
+
+      const respuesta = await request(app.getHttpServer())
+        .patch(`/reservations/${reservationId}/attendance`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ attended: false })
+        .expect(200);
+
+      expect(respuesta.body.attended).toBe(false);
+    });
+
+    it('responde 409 si la reserva no está CONFIRMED', async () => {
+      const { token, tenantId, serviceId } = await setupNegocio();
+
+      await seedReservation({
+        tenantId,
+        serviceId,
+        startsAt: PAST_STARTS_AT,
+        endsAt: PAST_ENDS_AT,
+        status: 'PENDING',
+        expiresAt: new Date(Date.now() - 60 * 60 * 1000).toISOString(),
+      });
+      const [{ id }]: Array<{ id: string }> = await dataSource.query(
+        `SELECT id FROM reservations WHERE tenant_id = $1`,
+        [tenantId],
+      );
+
+      await request(app.getHttpServer())
+        .patch(`/reservations/${id}/attendance`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ attended: true })
+        .expect(409);
+    });
+
+    it('responde 409 si la reserva CONFIRMED todavía no ocurre', async () => {
+      const { token, tenantId, serviceId } = await setupNegocio();
+      const reservationId = await seedConfirmed(tenantId, serviceId, FUTURE_MONDAY + 'T12:00:00.000Z');
+
+      await request(app.getHttpServer())
+        .patch(`/reservations/${reservationId}/attendance`)
+        .set('Authorization', `Bearer ${token}`)
+        .send({ attended: true })
+        .expect(409);
+    });
+
+    it('responde 404 si la reserva es de otro tenant', async () => {
+      const { tenantId, serviceId } = await setupNegocio();
+      const reservationId = await seedConfirmed(tenantId, serviceId, PAST_STARTS_AT);
+      const otroNegocio = await registerBusiness('barberia-b', 'b@test.cl');
+
+      await request(app.getHttpServer())
+        .patch(`/reservations/${reservationId}/attendance`)
+        .set('Authorization', `Bearer ${otroNegocio.token}`)
+        .send({ attended: true })
+        .expect(404);
+    });
+
+    it('rechaza sin token con 401', async () => {
+      const { tenantId, serviceId } = await setupNegocio();
+      const reservationId = await seedConfirmed(tenantId, serviceId, PAST_STARTS_AT);
+
+      await request(app.getHttpServer())
+        .patch(`/reservations/${reservationId}/attendance`)
+        .send({ attended: true })
+        .expect(401);
+    });
+  });
 });

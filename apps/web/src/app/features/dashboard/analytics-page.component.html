@@ -1,0 +1,80 @@
+<section class="analytics">
+  <header class="analytics__toolbar reveal is-visible">
+    <label class="field field--date">
+      <span class="field__label">Desde</span>
+      <input class="field__input" type="date" [value]="from()" (change)="changeFrom($any($event.target).value)" />
+    </label>
+
+    <label class="field field--date">
+      <span class="field__label">Hasta</span>
+      <input class="field__input" type="date" [value]="to()" (change)="changeTo($any($event.target).value)" />
+    </label>
+
+    @if (totalRevenue(); as total) {
+      <p class="analytics__total">
+        <span class="analytics__total-label">Ingresos en el rango</span>
+        <span class="analytics__total-value">{{ total }}</span>
+      </p>
+    }
+  </header>
+
+  <div class="analytics__grid">
+    <article class="card reveal is-visible">
+      <h2 class="card__title">Ingresos por día</h2>
+      @switch (daily().status) {
+        @case ('loading') {
+          <p class="notice">Cargando…</p>
+        }
+        @case ('error') {
+          <p class="notice">No pudimos cargar los ingresos.</p>
+        }
+        @default {
+          @if (revenueChart(); as config) {
+            <div class="card__chart">
+              <app-chart-canvas [config]="config" />
+            </div>
+          }
+        }
+      }
+    </article>
+
+    <article class="card reveal is-visible">
+      <h2 class="card__title">Ocupación por día</h2>
+      <p class="card__hint">Los huecos son días sin reservas o sin horario configurado — no se inventa un 0%.</p>
+      @switch (daily().status) {
+        @case ('loading') {
+          <p class="notice">Cargando…</p>
+        }
+        @case ('error') {
+          <p class="notice">No pudimos cargar la ocupación.</p>
+        }
+        @default {
+          @if (occupancyChart(); as config) {
+            <div class="card__chart">
+              <app-chart-canvas [config]="config" />
+            </div>
+          }
+        }
+      }
+    </article>
+
+    <article class="card card--wide reveal is-visible">
+      <h2 class="card__title">Top servicios por ingresos</h2>
+      @switch (topServices().status) {
+        @case ('loading') {
+          <p class="notice">Cargando…</p>
+        }
+        @case ('error') {
+          <p class="notice">No pudimos cargar el ranking.</p>
+        }
+        @default {
+          @if (topServicesChart(); as config) {
+            <div class="card__chart card__chart--wide">
+              <app-chart-canvas [config]="config" />
+            </div>
+          }
+        }
+      }
+    </article>
+  </div>
+</section>

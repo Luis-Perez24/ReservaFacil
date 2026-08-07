@@ -43,4 +43,11 @@ export interface ReservationResponse {
   /** Solo mientras está `PENDING`: cuándo expira la retención del slot. */
   expiresAt: string | null;
   priceClp: number;
+  /** `null` hasta que el negocio la marque. Solo marcable sobre una CONFIRMED ya pasada. */
+  attended: boolean | null;
+}
+
+/** PATCH del dashboard: el negocio marca si el cliente llegó a su hora. */
+export interface MarkAttendanceRequest {
+  attended: boolean;
 }

@@ -1,0 +1,19 @@
+<div class="dashboard">
+  <header class="dashboard__header">
+    <div>
+      <p class="dashboard__brand">ReservaFacil</p>
+      <h1 class="dashboard__business">{{ businessName() ?? 'Panel' }}</h1>
+    </div>
+
+    <div class="dashboard__account">
+      @if (user(); as user) {
+        <span class="dashboard__user">{{ user.fullName }}</span>
+      }
+      <button class="button button--ghost" type="button" (click)="logout()">Salir</button>
+    </div>
+  </header>
+
+  <main class="dashboard__content">
+    <router-outlet />
+  </main>
+</div>

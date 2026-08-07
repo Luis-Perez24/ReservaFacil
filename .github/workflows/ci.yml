@@ -70,6 +70,11 @@ jobs:
       TRANSBANK_ENVIRONMENT: integration
       TRANSBANK_RETURN_URL: http://localhost:3000/payments/webpay/return
       WEB_BASE_URL: http://localhost:4200
+      # No hay Mailpit en CI y no hace falta: nada acá manda un correo de
+      # verdad, solo se valida la interfaz de configuración de entorno.
+      SMTP_HOST: localhost
+      SMTP_PORT: '1025'
+      SMTP_FROM: 'ReservaFácil <no-reply@reservafacil.cl>'
 
     steps:
       - uses: actions/checkout@v4
@@ -120,10 +125,12 @@ jobs:
       - name: Build
         run: pnpm --filter @reservafacil/web build
 
-      # ubuntu-latest trae Chrome y corre como usuario sin privilegios, así que
-      # ChromeHeadless funciona sin --no-sandbox.
+      # Firefox es el único navegador del proyecto (karma.conf.js ya lo deja
+      # como default). `exec` en vez de `test --` porque `pnpm --filter <pkg>
+      # test -- --watch=false` duplica el separador y termina invocando
+      # `ng test -- --watch=false` (con el -- de más), que Angular rechaza.
       - name: Unit
-        run: pnpm --filter @reservafacil/web test -- --watch=false --browsers=ChromeHeadless
+        run: pnpm --filter @reservafacil/web exec ng test --watch=false
 
   docker:
     name: Imágenes de producción

@@ -14,7 +14,8 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 import type { Reservation } from './entities/reservation.entity';
 import { ReservationsService } from './reservations.service';
 
-function toResponse(reservation: Reservation): ReservationResponse {
+/** Compartido con `reservation-attendance.controller.ts`: misma forma de respuesta en dashboard y público. */
+export function toResponse(reservation: Reservation): ReservationResponse {
   return {
     id: reservation.id,
     serviceId: reservation.serviceId,
@@ -23,6 +24,7 @@ function toResponse(reservation: Reservation): ReservationResponse {
     endsAt: reservation.endsAt.toISOString(),
     expiresAt: reservation.expiresAt ? reservation.expiresAt.toISOString() : null,
     priceClp: reservation.priceClp,
+    attended: reservation.attended,
   };
 }
 

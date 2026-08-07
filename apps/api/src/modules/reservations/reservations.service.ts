@@ -245,6 +245,33 @@ export class ReservationsService {
   }
 
   /**
+   * El dueño marca si el cliente llegó a su hora. No es una transición de
+   * `status` —`attended` es ortogonal a la máquina de estados—, así que no
+   * pasa por `assertTransition`. Solo tiene sentido sobre una cita que ya
+   * ocurrió: `CONFIRMED` (fue pagada y confirmada) y `startsAt` ya pasó.
+   * Idempotente y corregible: se puede volver a marcar para corregir un error.
+   */
+  async markAttendance(tenantId: string, id: string, attended: boolean): Promise<Reservation> {
+    const reservation = await this.findById(tenantId, id);
+
+    if (!reservation) {
+      throw new NotFoundException('Reserva no encontrada');
+    }
+
+    if (reservation.status !== ReservationStatus.CONFIRMED) {
+      throw new ConflictException(`La reserva no está confirmada (estado ${reservation.status})`);
+    }
+
+    if (reservation.startsAt.getTime() > Date.now()) {
+      throw new ConflictException('La reserva todavía no ocurre');
+    }
+
+    reservation.attended = attended;
+
+    return this.reservations.save(reservation);
+  }
+
+  /**
    * `PENDING → PAID → CONFIRMED` tras la aprobación de Webpay. Recibe el
    * `manager` del pago —mismo patrón que `TenantsService.createWithinTransaction`—
    * para que registrar el pago y confirmar la reserva sean atómicos: no puede

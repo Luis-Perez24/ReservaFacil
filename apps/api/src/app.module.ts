@@ -7,6 +7,7 @@ import { resolve } from 'node:path';
 
 import { EnvironmentVariables, validateEnv } from './infra/config/env.validation';
 import { buildTypeOrmOptions } from './infra/db/typeorm-options';
+import { AnalyticsModule } from './modules/analytics/analytics.module';
 import { AuthModule } from './modules/auth/auth.module';
 import { CatalogModule } from './modules/catalog/catalog.module';
 import { NotificationsModule } from './modules/notifications/notifications.module';
@@ -55,6 +56,7 @@ import { TenantsModule } from './modules/tenants/tenants.module';
     ReservationsModule,
     PaymentsModule,
     NotificationsModule,
+    AnalyticsModule,
   ],
 })
 export class AppModule {}
