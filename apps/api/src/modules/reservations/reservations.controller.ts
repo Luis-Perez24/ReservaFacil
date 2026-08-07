@@ -14,7 +14,7 @@ import { CreateReservationDto } from './dto/create-reservation.dto';
 import type { Reservation } from './entities/reservation.entity';
 import { ReservationsService } from './reservations.service';
 
-/** Compartido con `reservation-attendance.controller.ts`: misma forma de respuesta en dashboard y público. */
+/** Compartido con `reservation-dashboard.controller.ts`: misma forma de respuesta en dashboard y público. */
 export function toResponse(reservation: Reservation): ReservationResponse {
   return {
     id: reservation.id,

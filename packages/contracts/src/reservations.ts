@@ -51,3 +51,15 @@ export interface ReservationResponse {
 export interface MarkAttendanceRequest {
   attended: boolean;
 }
+
+/**
+ * GET del dashboard: la agenda del negocio. A diferencia de `ReservationResponse`
+ * (público, sin PII de terceros), acá el dueño necesita saber a quién le está
+ * marcando la asistencia.
+ */
+export interface ReservationAgendaResponse extends ReservationResponse {
+  serviceName: string;
+  clientName: string;
+  clientEmail: string;
+  clientPhone: string | null;
+}

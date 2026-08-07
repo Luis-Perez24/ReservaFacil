@@ -6,6 +6,7 @@ import {
 } from '@nestjs/common';
 import { EventEmitter2 } from '@nestjs/event-emitter';
 import { InjectRepository } from '@nestjs/typeorm';
+import type { ReservationAgendaResponse } from '@reservafacil/contracts';
 import { ReservationStatus } from '@reservafacil/contracts';
 import { DateTime } from 'luxon';
 import { DataSource, EntityManager, Repository } from 'typeorm';
@@ -63,6 +64,39 @@ export class ReservationSlotLostError extends Error {
     super(`La reserva ya no es confirmable (estado ${currentStatus})`);
     this.name = 'ReservationSlotLostError';
   }
+}
+
+/** Fila de la agenda: la reserva más el nombre del servicio y los datos del cliente, ya en snake_case de Postgres. */
+interface AgendaRow {
+  id: string;
+  service_id: string;
+  status: ReservationStatus;
+  starts_at: Date;
+  ends_at: Date;
+  expires_at: Date | null;
+  price_clp: number;
+  attended: boolean | null;
+  service_name: string;
+  client_name: string;
+  client_email: string;
+  client_phone: string | null;
+}
+
+function toAgendaResponse(row: AgendaRow): ReservationAgendaResponse {
+  return {
+    id: row.id,
+    serviceId: row.service_id,
+    status: row.status,
+    startsAt: row.starts_at.toISOString(),
+    endsAt: row.ends_at.toISOString(),
+    expiresAt: row.expires_at ? row.expires_at.toISOString() : null,
+    priceClp: row.price_clp,
+    attended: row.attended,
+    serviceName: row.service_name,
+    clientName: row.client_name,
+    clientEmail: row.client_email,
+    clientPhone: row.client_phone,
+  };
 }
 
 @Injectable()
@@ -242,6 +276,51 @@ export class ReservationsService {
     }
 
     return reservation;
+  }
+
+  /**
+   * La agenda del dashboard: reservas del negocio en un rango de fechas
+   * locales, con nombre del servicio y datos del cliente —el dueño necesita
+   * saber a quién le está marcando la asistencia—. Mismo criterio que
+   * `AnalyticsService.getTopServices` para el nombre del servicio (`JOIN`
+   * directo, sin pasar por `catalog`) y el mismo de `findOrCreateClient` para
+   * `users`: `reservations → auth` no es una dirección permitida
+   * (`02-arquitectura.md`), así que es SQL directo, no import de módulo.
+   */
+  async findAgenda(
+    tenantId: string,
+    from: string,
+    to: string,
+  ): Promise<ReservationAgendaResponse[]> {
+    if (from > to) {
+      throw new BadRequestException('"from" no puede ser posterior a "to"');
+    }
+
+    const tenant = await this.tenantsService.findById(tenantId);
+
+    if (!tenant) {
+      throw new NotFoundException('Negocio no encontrado');
+    }
+
+    // Rango local del negocio convertido a UTC, mismo huso que `assertSlotIsBookable`.
+    const rangeStart = DateTime.fromISO(from, { zone: tenant.timezone }).startOf('day').toJSDate();
+    const rangeEnd = DateTime.fromISO(to, { zone: tenant.timezone }).endOf('day').toJSDate();
+
+    const rows: AgendaRow[] = await this.dataSource.query(
+      `SELECT
+         r.id, r.service_id, r.status, r.starts_at, r.ends_at, r.expires_at,
+         r.price_clp, r.attended,
+         s.name AS service_name,
+         u.full_name AS client_name, u.email AS client_email, u.phone AS client_phone
+       FROM reservations r
+       JOIN services s ON s.id = r.service_id
+       JOIN users u ON u.id = r.client_id
+       WHERE r.tenant_id = $1 AND r.starts_at >= $2 AND r.starts_at <= $3
+       ORDER BY r.starts_at ASC`,
+      [tenantId, rangeStart, rangeEnd],
+    );
+
+    return rows.map(toAgendaResponse);
   }
 
   /**

@@ -1,0 +1,91 @@
+<section class="agenda">
+  <header class="agenda__toolbar reveal is-visible">
+    <div>
+      <p class="agenda__eyebrow">Agenda</p>
+      <h1 class="agenda__page-title">Tus reservas</h1>
+    </div>
+
+    <div class="agenda__range">
+      <label class="field field--date">
+        <span class="field__label">Desde</span>
+        <input class="field__input" type="date" [value]="from()" (change)="changeFrom($any($event.target).value)" />
+      </label>
+
+      <label class="field field--date">
+        <span class="field__label">Hasta</span>
+        <input class="field__input" type="date" [value]="to()" (change)="changeTo($any($event.target).value)" />
+      </label>
+    </div>
+  </header>
+
+  @switch (state().status) {
+    @case ('loading') {
+      <p class="notice">Cargando…</p>
+    }
+    @case ('error') {
+      <p class="notice">No pudimos cargar tu agenda.</p>
+    }
+    @default {
+      @if (rows().length === 0) {
+        <p class="notice">No hay reservas en ese rango.</p>
+      } @else {
+        <div class="agenda__grid">
+          @for (reservation of rows(); track reservation.id) {
+            <article class="card agenda__item">
+              <div class="card__heading">
+                <span class="card__dot" aria-hidden="true"></span>
+                <h3 class="card__title">{{ reservation.serviceName }}</h3>
+                <span class="agenda__badge">{{ statusLabel(reservation.status) }}</span>
+              </div>
+
+              <p class="agenda__meta">
+                {{ formatDateTime(reservation.startsAt) }} · {{ formatClp(reservation.priceClp) }}
+              </p>
+
+              <dl class="agenda__client">
+                <div>
+                  <dt>Cliente</dt>
+                  <dd>{{ reservation.clientName }}</dd>
+                </div>
+                <div>
+                  <dt>Contacto</dt>
+                  <dd>
+                    {{ reservation.clientEmail }}
+                    @if (reservation.clientPhone) {
+                      · {{ reservation.clientPhone }}
+                    }
+                  </dd>
+                </div>
+              </dl>
+
+              @if (reservation.attended !== null) {
+                <p class="agenda__attendance" [class.agenda__attendance--no-show]="!reservation.attended">
+                  {{ reservation.attended ? 'Asistió' : 'No llegó' }}
+                </p>
+              } @else if (canMarkAttendance(reservation)) {
+                <div class="agenda__actions">
+                  <button
+                    class="button button--ghost"
+                    type="button"
+                    [disabled]="markingId() === reservation.id"
+                    (click)="markAttendance(reservation, true)"
+                  >
+                    Asistió
+                  </button>
+                  <button
+                    class="button button--ghost"
+                    type="button"
+                    [disabled]="markingId() === reservation.id"
+                    (click)="markAttendance(reservation, false)"
+                  >
+                    No llegó
+                  </button>
+                </div>
+              }
+            </article>
+          }
+        </div>
+      }
+    }
+  }
+</section>
