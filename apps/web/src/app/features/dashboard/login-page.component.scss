@@ -20,10 +20,31 @@
     radial-gradient(120% 100% at 0% 0%, #2a3b8f 0%, transparent 55%),
     linear-gradient(155deg, #12172b 0%, #1a1613 65%, #241a12 100%);
   color: var(--paper);
+  --mouse-x: 50%;
+  --mouse-y: 50%;
 
   @media (min-width: 56rem) {
     display: flex;
   }
+}
+
+/* Sigue al cursor: solo se prende con :hover porque en touch no hay mouse
+   que seguir, y `pointer-events: none` para que nunca robe el clic. */
+.login__spotlight {
+  position: absolute;
+  inset: 0;
+  background: radial-gradient(
+    28rem circle at var(--mouse-x) var(--mouse-y),
+    rgba(255, 255, 255, 0.12),
+    transparent 60%
+  );
+  opacity: 0;
+  transition: opacity 220ms var(--ease-out);
+  pointer-events: none;
+}
+
+.login__brand:hover .login__spotlight {
+  opacity: 1;
 }
 
 /* Manchas de luz difusas: dan profundidad sin pesar nada (solo CSS, sin imágenes). */
@@ -109,7 +130,7 @@
 
 .login__card {
   display: grid;
-  gap: var(--space-5);
+  gap: var(--space-6);
   width: min(100%, 24rem);
   padding: var(--space-8);
   background: var(--paper);

@@ -1,8 +1,9 @@
 <main class="login">
-  <section class="login__brand">
+  <section class="login__brand" #brandPanel (mousemove)="onBrandMouseMove($event, brandPanel)">
     <div class="login__glow login__glow--one" aria-hidden="true"></div>
     <div class="login__glow login__glow--two" aria-hidden="true"></div>
     <div class="login__grid" aria-hidden="true"></div>
+    <div class="login__spotlight" aria-hidden="true"></div>
 
     <div class="login__brand-content">
       <p class="login__mark">ReservaFácil</p>
