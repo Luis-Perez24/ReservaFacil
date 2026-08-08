@@ -1,3 +1,7 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 /**
  * Tokens y reset. La página es white-label: cada negocio trae su color, así que
  * `--brand` es lo único que cambia en runtime y el resto del chasis es neutro.
@@ -55,6 +59,43 @@
   --font-display: 'Bricolage Grotesque', var(--font-sans);
 
   color-scheme: light;
+}
+
+/**
+ * El dashboard (herramienta privada del dueño) usa un gris-azulado frío,
+ * deliberadamente distinto del ivory cálido de la página pública white-label
+ * (ver nota de diseño en 05-plan.md: "el white-label vale para ojos externos,
+ * no para una herramienta privada"). Ambas paletas —claro y oscuro— quedan
+ * encerradas en `.dashboard` para que nunca se escapen a `/​:slug`.
+ */
+.dashboard {
+  --paper: #ffffff;
+  --surface: #f1f5f9;
+  --mist: #e2e8f0;
+  --line: #e2e8f0;
+  --ink: #0f172a;
+  --ink-soft: #64748b;
+  /* "Disponible" en el gráfico de ocupación: un azul pálido de la misma
+     familia que `--brand`, no un gris neutro — el "Ocupado" y el "Disponible"
+     tienen que leerse como dos tonos del mismo dato, no como dos escalas
+     distintas. */
+  --occupancy-available: #d6e2f9;
+}
+
+.dashboard.dark {
+  --brand: #3b82f6; /* azul más brillante: sobre fondo oscuro el tono normal pierde contraste */
+  --ink: #f8fafc;
+  --ink-soft: #94a3b8;
+  --paper: #1e293b;
+  --surface: #0f172a;
+  --mist: #1e293b;
+  --line: #334155;
+  /* De noche se invierte: "Disponible" es un azul apagado más OSCURO que el
+     "Ocupado" brillante, no más claro — mismo criterio que la tarjeta de
+     ingresos (el acento brilla sobre el fondo oscuro). */
+  --occupancy-available: #234876;
+
+  color-scheme: dark;
 }
 
 *,
@@ -161,6 +202,102 @@ img {
   opacity: 1;
 }
 
+/* Para acciones destructivas en reposo (ej. "Desactivar" en una lista): se ve
+   igual que un botón ghost normal hasta que el mouse avisa lo que va a pasar. */
+.button--danger {
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.button--danger:hover:not(:disabled) {
+  color: #fff;
+  background: #dc2626;
+  border-color: #dc2626;
+  opacity: 1;
+}
+
+/* Para el botón de confirmar dentro de un modal de "¿estás seguro?": ya es
+   una decisión tomada, no hace falta esconder que es destructivo. */
+.button--danger-solid {
+  color: #fff;
+  background: #dc2626;
+}
+
+.button--danger-solid:hover:not(:disabled) {
+  background: #b91c1c;
+  opacity: 1;
+}
+
+/* Para acciones positivas en reposo (ej. "Reactivar"): mismo criterio que
+   `.button--danger`, pero verde — la acción es segura, no hace falta confirmar. */
+.button--success {
+  color: var(--ink);
+  background: var(--paper);
+  border: 1px solid var(--line);
+}
+
+.button--success:hover:not(:disabled) {
+  color: #fff;
+  background: #16a34a;
+  border-color: #16a34a;
+  opacity: 1;
+}
+
+/**
+ * Modal de confirmación (`<dialog>` nativo). Compartido por servicios y
+ * horarios — ambas secciones tienen una acción destructiva que pide
+ * confirmar antes de ejecutar. El toast de éxito vive aparte, en
+ * `core/toast/` (un solo componente, ya no se duplica el CSS).
+ */
+.modal {
+  padding: 0;
+  border: none;
+  border-radius: 16px;
+  background: transparent;
+  overflow: visible;
+}
+
+.modal::backdrop {
+  background: rgb(0 0 0 / 0.5);
+}
+
+.modal__panel {
+  display: flex;
+  flex-direction: column;
+  gap: var(--space-3);
+  width: min(28rem, 90vw);
+  padding: var(--space-6);
+  background: var(--paper);
+  border-radius: 16px;
+  border-top: 4px solid transparent;
+  box-shadow: 0 24px 60px -20px rgb(0 0 0 / 0.45);
+  animation: modal-in 200ms var(--ease-out);
+}
+
+/* Acento rojo arriba: la única señal antes de leer el texto de que esta
+   confirmación es sobre algo destructivo. */
+.modal--danger .modal__panel {
+  border-top-color: #dc2626;
+}
+
+@keyframes modal-in {
+  from {
+    opacity: 0;
+    transform: scale(0.95);
+  }
+  to {
+    opacity: 1;
+    transform: none;
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .modal__panel {
+    animation: none;
+  }
+}
+
 .field {
   display: grid;
   gap: var(--space-2);
@@ -187,6 +324,12 @@ img {
 
 .field__input:focus-visible {
   border-color: var(--brand);
+}
+
+.field__input:disabled {
+  opacity: 0.5;
+  cursor: not-allowed;
+  background: var(--surface);
 }
 
 .field__error {
