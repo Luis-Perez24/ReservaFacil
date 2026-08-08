@@ -1,6 +1,11 @@
 .dashboard {
   min-height: 100dvh;
   background: var(--surface);
+  /* Sin esto, cualquier texto sin `color` propio (el nombre del negocio, por
+     ejemplo) hereda el `color: var(--ink)` ya resuelto del `body` —que está
+     FUERA de `.dashboard` y nunca ve `.dashboard.dark`— en vez de re-evaluar
+     `--ink` acá, donde sí está escopado el tema. */
+  color: var(--ink);
 }
 
 .dashboard__header {
@@ -24,44 +29,90 @@
 }
 
 .dashboard__nav-link {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
   padding: var(--space-2) var(--space-3);
   border-radius: 8px;
   font-size: 0.9rem;
   font-weight: 500;
-  color: var(--ink-soft);
+  /* Texto de contraste total, no el tono suave: en modo noche debe leerse
+     blanco y en modo día negro — `--ink` cambia con el tema, `--ink-soft` es
+     demasiado apagado para eso. */
+  color: var(--ink);
   text-decoration: none;
+  /* Transparente por defecto, no `none`: activar el ítem solo cambia el color
+     del borde, nunca su grosor — así no hay salto de layout al prender/apagar. */
+  border: 1px solid transparent;
   transition:
     color 160ms var(--ease-out),
-    background-color 160ms var(--ease-out);
+    background-color 160ms var(--ease-out),
+    border-color 160ms var(--ease-out),
+    box-shadow 160ms var(--ease-out);
 
   &:hover {
-    color: var(--ink);
     background: var(--surface);
   }
 
+  /*
+   * Dos tratamientos distintos a propósito, uno por mockup:
+   * de día es una píldora rellena (fondo con tinte de marca); de noche es un
+   * contorno con un halo suave, sin relleno — el fondo casi no cambia porque
+   * ya es oscuro, lo que marca el activo es el borde que brilla.
+   */
   &.is-active {
     color: var(--brand);
     background: color-mix(in oklab, var(--brand) 10%, transparent);
   }
 }
 
+.dashboard.dark .dashboard__nav-link.is-active {
+  background: color-mix(in oklab, var(--brand) 12%, transparent);
+  border-color: var(--brand);
+  box-shadow: 0 0 14px -2px color-mix(in oklab, var(--brand) 65%, transparent);
+}
+
+/* "RESERVAFACIL | Negocio" en una sola línea, mismo tamaño y línea base —
+   el peso es lo único que distingue la marca del nombre del negocio. */
+.dashboard__logo {
+  display: flex;
+  align-items: baseline;
+  gap: var(--space-2);
+}
+
 .dashboard__brand {
-  font-size: 0.8rem;
-  font-weight: 600;
+  font-family: var(--font-display);
+  font-size: 1.05rem;
+  font-weight: 800;
   letter-spacing: 0.02em;
-  text-transform: uppercase;
+  color: var(--ink);
+}
+
+.dashboard__divider {
   color: var(--ink-soft);
+  font-weight: 400;
+  font-size: 1.1rem;
 }
 
 .dashboard__business {
   font-family: var(--font-display);
-  font-size: 1.25rem;
+  font-size: 1.05rem;
+  font-weight: 500;
+  color: var(--ink-soft);
 }
 
 .dashboard__account {
   display: flex;
   align-items: center;
   gap: var(--space-4);
+}
+
+/* El botón "Salir" ahora lleva ícono + texto; `.button` global no trae flex
+   porque la mayoría de sus usos son solo texto. */
+.dashboard__account .button {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--space-2);
 }
 
 .dashboard__user {

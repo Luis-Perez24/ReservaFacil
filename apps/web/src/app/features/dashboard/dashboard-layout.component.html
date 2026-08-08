@@ -1,26 +1,57 @@
-<div class="dashboard">
+<div class="dashboard" [class.dark]="theme.isDark()">
   <header class="dashboard__header">
-    <div>
-      <p class="dashboard__brand">ReservaFacil</p>
-      <h1 class="dashboard__business">{{ businessName() ?? 'Panel' }}</h1>
-    </div>
+    <div class="dashboard__logo">
+      <span class="dashboard__brand">RESERVAFACIL</span>
+      <span class="dashboard__divider "  aria-hidden="true">|</span>
+      <span class="dashboard__business">{{ businessName() ?? 'Panel' }}</span>
+    </div>  
+   
 
     <nav class="dashboard__nav">
-      <a class="dashboard__nav-link" routerLink="/dashboard" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">Métricas</a>
-      <a class="dashboard__nav-link" routerLink="/dashboard/agenda" routerLinkActive="is-active">Agenda</a>
-      <a class="dashboard__nav-link" routerLink="/dashboard/servicios" routerLinkActive="is-active">Servicios</a>
-      <a class="dashboard__nav-link" routerLink="/dashboard/horarios" routerLinkActive="is-active">Horarios</a>
+      <a class="dashboard__nav-link" routerLink="/dashboard" routerLinkActive="is-active" [routerLinkActiveOptions]="{ exact: true }">
+        <lucide-icon name="bar-chart-3" [size]="18"></lucide-icon>
+        Métricas
+      </a>
+      <a class="dashboard__nav-link" routerLink="/dashboard/agenda" routerLinkActive="is-active">
+        <lucide-icon name="calendar-days" [size]="18"></lucide-icon>
+        Agenda
+      </a>
+      <a class="dashboard__nav-link" routerLink="/dashboard/servicios" routerLinkActive="is-active">
+        <lucide-icon name="briefcase" [size]="18"></lucide-icon>
+        Servicios
+      </a>
+      <a class="dashboard__nav-link" routerLink="/dashboard/horarios" routerLinkActive="is-active">
+        <lucide-icon name="clock" [size]="18"></lucide-icon>
+        Horarios
+      </a>
     </nav>
 
     <div class="dashboard__account">
+      <button
+        class="flex items-center justify-center w-9 h-9 rounded-full border border-line text-ink-soft hover:text-ink hover:border-brand transition-colors"
+        type="button"
+        (click)="theme.toggle()"
+        [attr.aria-label]="theme.isDark() ? 'Cambiar a modo día' : 'Cambiar a modo noche'"
+      >
+        <lucide-icon [name]="theme.isDark() ? 'sun' : 'moon'" [size]="18" />
+      </button>
+
       @if (user(); as user) {
+        <span class="flex items-center justify-center w-8 h-8 rounded-full bg-brand text-paper text-xs font-bold shrink-0">
+          {{ initials() }}
+        </span>
         <span class="dashboard__user">{{ user.fullName }}</span>
       }
-      <button class="button button--ghost" type="button" (click)="logout()">Salir</button>
+      <button class="button button--ghost" type="button" (click)="logout()">
+        <lucide-icon name="log-out" [size]="18"></lucide-icon>
+        Salir
+      </button>
     </div>
   </header>
 
   <main class="dashboard__content">
     <router-outlet />
   </main>
+
+  <app-toast />
 </div>
