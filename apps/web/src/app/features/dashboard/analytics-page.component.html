@@ -1,56 +1,120 @@
-<section class="analytics">
-  <header class="analytics__toolbar reveal is-visible">
+<section class="max-w-7xl mx-auto p-4 md:p-8 space-y-8 animate-in fade-in duration-500 text-ink">
+  <!-- Header -->
+  <header class="flex flex-col md:flex-row md:items-end justify-between gap-6">
     <div>
-      <p class="analytics__eyebrow">Métricas</p>
-      <h1 class="analytics__page-title">Cómo le está yendo a tu negocio</h1>
+      <p class="text-sm font-semibold uppercase tracking-widest text-ink-soft mb-1">Métricas</p>
+      <h1 class="text-3xl md:text-4xl font-bold font-display tracking-tight text-ink">Cómo le está yendo a tu negocio</h1>
     </div>
 
-    <div class="analytics__range">
-      <label class="field field--date">
-        <span class="field__label">Desde</span>
-        <input class="field__input" type="date" [value]="from()" (change)="changeFrom($any($event.target).value)" />
+    <div class="flex flex-wrap items-center gap-4">
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold text-ink-soft">Desde</span>
+        <div class="relative">
+          <lucide-icon name="calendar-days" class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none" [size]="18"></lucide-icon>
+          <input 
+            type="date" 
+            [value]="from()" 
+            (change)="changeFrom($any($event.target).value)" 
+            class="bg-paper border border-line rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-ink focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none transition-all"
+          />
+        </div>
       </label>
 
-      <label class="field field--date">
-        <span class="field__label">Hasta</span>
-        <input class="field__input" type="date" [value]="to()" (change)="changeTo($any($event.target).value)" />
+      <label class="flex flex-col gap-1.5">
+        <span class="text-xs font-semibold text-ink-soft">Hasta</span>
+        <div class="relative">
+          <lucide-icon name="calendar-days" class="absolute left-3 top-1/2 -translate-y-1/2 text-ink-soft pointer-events-none" [size]="18"></lucide-icon>
+          <input 
+            type="date" 
+            [value]="to()" 
+            (change)="changeTo($any($event.target).value)" 
+            class="bg-paper border border-line rounded-xl pl-10 pr-4 py-2.5 text-sm font-medium text-ink focus:ring-2 focus:ring-brand/50 focus:border-brand outline-none transition-all"
+          />
+        </div>
       </label>
     </div>
   </header>
 
-  <div class="analytics__stats reveal is-visible">
-    <article class="stat stat--accent">
-      <p class="stat__label">Ingresos en el rango</p>
-      <p class="stat__value">{{ totalRevenue() ?? '—' }}</p>
+  <!-- Summary Cards -->
+  <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+    <article class="bg-gradient-to-br from-blue-600 to-indigo-600 dark:from-blue-500 dark:to-purple-600 text-white rounded-3xl p-6 shadow-xl dark:shadow-[0_0_40px_rgba(59,130,246,0.2)] relative overflow-hidden group hover:scale-[1.02] transition-transform duration-300">
+      <!-- Barrido LED: banda blanca semitransparente que cruza la tarjeta, con
+           pausa entre pasadas (ver keyframes en tailwind.config.js). -->
+      <div class="pointer-events-none absolute inset-0 overflow-hidden rounded-3xl" aria-hidden="true">
+        <div class="absolute inset-y-0 left-0 w-1/3 bg-gradient-to-r from-transparent via-white/25 to-transparent animate-shimmer-sweep"></div>
+      </div>
+
+      <div class="relative flex justify-between items-start mb-6">
+        <p class="text-blue-100 font-medium tracking-wide">Ingresos en el rango</p>
+        <lucide-icon name="arrow-up-right" class="text-blue-200" [size]="20"></lucide-icon>
+      </div>
+      <p class="relative text-4xl md:text-5xl font-bold tracking-tighter">{{ totalRevenue() ?? '—' }}</p>
+
+      <!-- Sparkline: línea blanca sobre relleno degradado que se desvanece
+           hacia abajo — no son datos reales, es la firma visual de la tarjeta. -->
+      <svg
+        class="absolute bottom-0 right-0 w-32 h-16 opacity-90 group-hover:scale-105 transition-transform duration-500"
+        viewBox="0 0 120 60"
+        fill="none"
+        xmlns="http://www.w3.org/2000/svg"
+        aria-hidden="true"
+      >
+        <defs>
+          <linearGradient id="sparkline-fill" x1="0" y1="0" x2="0" y2="1">
+            <stop offset="0%" stop-color="#ffffff" stop-opacity="0.35" />
+            <stop offset="100%" stop-color="#ffffff" stop-opacity="0" />
+          </linearGradient>
+        </defs>
+        <path
+          d="M0 42 Q 14 20 28 30 T 56 16 T 84 28 T 120 8 L 120 60 L 0 60 Z"
+          fill="url(#sparkline-fill)"
+        />
+        <path
+          d="M0 42 Q 14 20 28 30 T 56 16 T 84 28 T 120 8"
+          stroke="#ffffff"
+          stroke-width="2"
+          stroke-linecap="round"
+          fill="none"
+        />
+      </svg>
     </article>
 
-    <article class="stat">
-      <p class="stat__label">Reservas en el rango</p>
-      <p class="stat__value">{{ totalReservations() ?? '—' }}</p>
+    <article class="bg-paper rounded-3xl p-6 shadow-[0_2px_4px_rgba(0,0,0,0.04),0_18px_36px_-16px_rgba(0,0,0,0.22)] dark:shadow-[0_2px_4px_rgba(0,0,0,0.3),0_18px_40px_-14px_rgba(0,0,0,0.65)] border border-line hover:border-brand/30 transition-colors">
+      <div class="flex justify-between items-start mb-6">
+        <p class="text-ink-soft font-medium tracking-wide">Reservas en el rango</p>
+        <lucide-icon name="calendar" class="text-ink-soft" [size]="20"></lucide-icon>
+      </div>
+      <p class="text-4xl md:text-5xl font-bold tracking-tighter text-ink">{{ totalReservations() ?? '—' }}</p>
     </article>
 
-    <article class="stat">
-      <p class="stat__label">Tasa de no-show</p>
-      <p class="stat__value">{{ noShowRate() ?? '—' }}</p>
+    <article class="bg-paper rounded-3xl p-6 shadow-[0_2px_4px_rgba(0,0,0,0.04),0_18px_36px_-16px_rgba(0,0,0,0.22)] dark:shadow-[0_2px_4px_rgba(0,0,0,0.3),0_18px_40px_-14px_rgba(0,0,0,0.65)] border border-line hover:border-brand/30 transition-colors">
+      <div class="flex justify-between items-start mb-6">
+        <p class="text-ink-soft font-medium tracking-wide">Tasa de no-show</p>
+        <lucide-icon name="calendar-off" class="text-ink-soft" [size]="20"></lucide-icon>
+      </div>
+      <p class="text-4xl md:text-5xl font-bold tracking-tighter text-ink">{{ noShowRate() ?? '—' }}</p>
     </article>
   </div>
 
-  <div class="analytics__grid">
-    <article class="card reveal is-visible">
-      <div class="card__heading">
-        <span class="card__dot" aria-hidden="true"></span>
-        <h2 class="card__title">Ingresos por día</h2>
+  <!-- Charts Row 1 -->
+  <div class="grid grid-cols-1 lg:grid-cols-2 gap-6">
+    <article class="bg-paper rounded-3xl p-6 md:p-8 shadow-[0_2px_4px_rgba(0,0,0,0.04),0_18px_36px_-16px_rgba(0,0,0,0.22)] dark:shadow-[0_2px_4px_rgba(0,0,0,0.3),0_18px_40px_-14px_rgba(0,0,0,0.65)] border border-line flex flex-col min-h-[400px]">
+      <div class="mb-8">
+        <h2 class="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
+          <lucide-icon name="trending-up" class="text-brand" [size]="20"></lucide-icon>
+          Ingresos por día
+        </h2>
       </div>
       @switch (daily().status) {
         @case ('loading') {
-          <p class="notice">Cargando…</p>
+          <div class="flex-1 flex items-center justify-center text-ink-soft"><p>Cargando…</p></div>
         }
         @case ('error') {
-          <p class="notice">No pudimos cargar los ingresos.</p>
+          <div class="flex-1 flex items-center justify-center text-red-500"><p>No pudimos cargar los ingresos.</p></div>
         }
         @default {
           @if (revenueChart(); as config) {
-            <div class="card__chart">
+            <div class="relative flex-1 w-full h-[300px]">
               <app-chart-canvas [config]="config" />
             </div>
           }
@@ -58,44 +122,29 @@
       }
     </article>
 
-    <article class="card reveal is-visible">
-      <div class="card__heading">
-        <span class="card__dot" aria-hidden="true"></span>
-        <h2 class="card__title">Ocupación por día</h2>
+    <article class="bg-paper rounded-3xl p-6 md:p-8 shadow-[0_2px_4px_rgba(0,0,0,0.04),0_18px_36px_-16px_rgba(0,0,0,0.22)] dark:shadow-[0_2px_4px_rgba(0,0,0,0.3),0_18px_40px_-14px_rgba(0,0,0,0.65)] border border-line flex flex-col min-h-[400px]">
+      <div class="flex flex-col md:flex-row justify-between items-start md:items-center gap-2 mb-2">
+        <h2 class="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
+          <lucide-icon name="activity" class="text-brand" [size]="20"></lucide-icon>
+          Ocupación por día
+        </h2>
+        <div class="flex items-center gap-4 text-xs font-medium text-ink-soft">
+          <span class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded bg-brand shadow-sm shadow-brand/50"></div> Ocupado</span>
+          <span class="flex items-center gap-1.5"><div class="w-2.5 h-2.5 rounded bg-[var(--occupancy-available)] border border-line"></div> Disponible</span>
+        </div>
       </div>
-      <p class="card__hint">Los huecos son días sin reservas o sin horario configurado — no se inventa un 0%.</p>
-      @switch (daily().status) {
+      <p class="text-xs text-ink-soft mb-8">Los huecos son días sin reservas o sin horario configurado — no se inventa un 0%.</p>
+
+      @switch (weeklyOccupancy().status) {
         @case ('loading') {
-          <p class="notice">Cargando…</p>
+          <div class="flex-1 flex items-center justify-center text-ink-soft"><p>Cargando…</p></div>
         }
         @case ('error') {
-          <p class="notice">No pudimos cargar la ocupación.</p>
+          <div class="flex-1 flex items-center justify-center text-red-500"><p>No pudimos cargar la ocupación.</p></div>
         }
         @default {
           @if (occupancyChart(); as config) {
-            <div class="card__chart">
-              <app-chart-canvas [config]="config" />
-            </div>
-          }
-        }
-      }
-    </article>
-
-    <article class="card card--wide reveal is-visible">
-      <div class="card__heading">
-        <span class="card__dot" aria-hidden="true"></span>
-        <h2 class="card__title">Top servicios por ingresos</h2>
-      </div>
-      @switch (topServices().status) {
-        @case ('loading') {
-          <p class="notice">Cargando…</p>
-        }
-        @case ('error') {
-          <p class="notice">No pudimos cargar el ranking.</p>
-        }
-        @default {
-          @if (topServicesChart(); as config) {
-            <div class="card__chart card__chart--wide">
+            <div class="relative flex-1 w-full h-[300px]">
               <app-chart-canvas [config]="config" />
             </div>
           }
@@ -103,4 +152,29 @@
       }
     </article>
   </div>
+
+  <!-- Charts Row 2 -->
+  <article class="bg-paper rounded-3xl p-6 md:p-8 shadow-[0_2px_4px_rgba(0,0,0,0.04),0_18px_36px_-16px_rgba(0,0,0,0.22)] dark:shadow-[0_2px_4px_rgba(0,0,0,0.3),0_18px_40px_-14px_rgba(0,0,0,0.65)] border border-line">
+    <div class="mb-8">
+      <h2 class="text-lg font-bold text-ink tracking-tight flex items-center gap-2">
+        <lucide-icon name="star" class="text-brand" [size]="20"></lucide-icon>
+        Top servicios por ingresos
+      </h2>
+    </div>
+    @switch (topServices().status) {
+      @case ('loading') {
+        <div class="flex items-center justify-center text-ink-soft h-[250px]"><p>Cargando…</p></div>
+      }
+      @case ('error') {
+        <div class="flex items-center justify-center text-red-500 h-[250px]"><p>No pudimos cargar el ranking.</p></div>
+      }
+      @default {
+        @if (topServicesChart(); as config) {
+          <div class="relative w-full h-[250px]">
+            <app-chart-canvas [config]="config" />
+          </div>
+        }
+      }
+    }
+  </article>
 </section>
