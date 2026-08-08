@@ -119,10 +119,16 @@ describe('ServicesPageComponent', () => {
     expect(el.textContent).toContain('La duración debe ser un entero positivo.');
   });
 
-  it('desactiva un servicio activo llamando al endpoint dedicado (soft delete)', async () => {
+  it('pide confirmación antes de desactivar y recién ahí llama al endpoint (soft delete)', async () => {
     const el = await montar();
 
     click(el, '.services__item-actions button:last-child');
+    await estabilizar();
+
+    // El modal de confirmación no llama al backend por sí solo.
+    expect(api.ultimaDesactivacion).toBeNull();
+
+    click(el, '.modal--danger .button--danger-solid');
     await estabilizar();
 
     expect(api.ultimaDesactivacion).toBe('srv-1');
