@@ -1,11 +1,20 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
+import {
+  ChangeDetectionStrategy,
+  Component,
+  DestroyRef,
+  ElementRef,
+  ViewChild,
+  computed,
+  inject,
+  signal,
+} from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { FormBuilder, ReactiveFormsModule, Validators } from '@angular/forms';
 import type { ServiceResponse } from '@reservafacil/contracts';
-import type { Observable } from 'rxjs';
 
 import { ServicesApi } from '../../core/api/services.api';
+import { ToastService } from '../../core/toast/toast.service';
 
 type ServicesState =
   | { status: 'loading' }
@@ -46,12 +55,22 @@ export class ServicesPageComponent {
   private readonly servicesApi = inject(ServicesApi);
   private readonly fb = inject(FormBuilder);
   private readonly destroyRef = inject(DestroyRef);
+  private readonly toast = inject(ToastService);
 
   readonly state = signal<ServicesState>({ status: 'loading' });
   readonly submitting = signal(false);
   readonly formError = signal<string | null>(null);
-  /** `null` = alta nueva; con id = editando ese servicio. */
+  /** `null` = alta nueva; con id = editando ese servicio (el modal está abierto). */
   readonly editingId = signal<string | null>(null);
+  /** Servicio pendiente de confirmar desactivación; `null` = el modal de confirmación está cerrado. */
+  readonly deactivateTarget = signal<ServiceResponse | null>(null);
+  readonly deactivating = signal(false);
+
+  @ViewChild('editDialog', { static: true })
+  private readonly editDialogRef!: ElementRef<HTMLDialogElement>;
+
+  @ViewChild('confirmDialog', { static: true })
+  private readonly confirmDialogRef!: ElementRef<HTMLDialogElement>;
 
   readonly form = this.fb.nonNullable.group({
     name: ['', [Validators.required, Validators.maxLength(120)]],
@@ -91,9 +110,12 @@ export class ServicesPageComponent {
       durationMin: service.durationMin,
       priceClp: service.priceClp,
     });
+    this.editDialogRef.nativeElement.showModal();
   }
 
+  /** También es el handler del evento `(close)` nativo del `<dialog>` (Esc, click afuera). */
   cancelEdit(): void {
+    this.editDialogRef.nativeElement.close();
     this.editingId.set(null);
     this.formError.set(null);
     this.form.reset({ name: '', durationMin: 30, priceClp: 0 });
@@ -117,6 +139,7 @@ export class ServicesPageComponent {
         this.submitting.set(false);
         this.cancelEdit();
         this.reload();
+        this.toast.show(editingId ? 'Servicio actualizado correctamente.' : 'Servicio creado correctamente.');
       },
       error: (error: HttpErrorResponse) => {
         this.submitting.set(false);
@@ -130,14 +153,53 @@ export class ServicesPageComponent {
     });
   }
 
-  toggleActive(service: ServiceResponse): void {
-    const request$: Observable<unknown> = service.active
-      ? this.servicesApi.deactivate(service.id)
-      : this.servicesApi.update(service.id, { active: true });
+  /** Reactivar no es destructivo: no necesita confirmación, va directo. */
+  reactivate(service: ServiceResponse): void {
+    this.servicesApi
+      .update(service.id, { active: true })
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.reload();
+          this.toast.show('Servicio reactivado.');
+        },
+        error: () => this.state.set({ status: 'error' }),
+      });
+  }
 
-    request$.pipe(takeUntilDestroyed(this.destroyRef)).subscribe({
-      next: () => this.reload(),
-      error: () => this.state.set({ status: 'error' }),
-    });
+  requestDeactivate(service: ServiceResponse): void {
+    this.deactivateTarget.set(service);
+    this.confirmDialogRef.nativeElement.showModal();
+  }
+
+  /** También es el handler del evento `(close)` nativo del `<dialog>` (Esc, click afuera). */
+  cancelDeactivate(): void {
+    this.confirmDialogRef.nativeElement.close();
+    this.deactivateTarget.set(null);
+  }
+
+  confirmDeactivate(): void {
+    const service = this.deactivateTarget();
+    if (!service || this.deactivating()) {
+      return;
+    }
+
+    this.deactivating.set(true);
+    this.servicesApi
+      .deactivate(service.id)
+      .pipe(takeUntilDestroyed(this.destroyRef))
+      .subscribe({
+        next: () => {
+          this.deactivating.set(false);
+          this.cancelDeactivate();
+          this.reload();
+          this.toast.show('Servicio desactivado.');
+        },
+        error: () => {
+          this.deactivating.set(false);
+          this.cancelDeactivate();
+          this.state.set({ status: 'error' });
+        },
+      });
   }
 }

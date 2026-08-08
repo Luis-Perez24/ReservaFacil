@@ -55,7 +55,9 @@
 
 .card__title {
   font-family: var(--font-display);
-  font-size: 1.1rem;
+  font-size: 1.4rem;
+  font-weight: 800;
+  letter-spacing: -0.01em;
 }
 
 /* ── Formularios ──────────────────────────────────────────────────────── */
@@ -73,17 +75,30 @@
   align-items: end;
 }
 
+/* Los demás campos son label arriba / input abajo; este es una fila sola
+   (checkbox + texto), así que necesita su propia alineación — el padding
+   inferior lo iguala en altura a un `.field__input` real, para que quede en
+   la misma línea de base que sus vecinos dentro del grid (`align-items: end`). */
 .field--checkbox {
   display: flex;
-  flex-direction: row-reverse;
+  flex-direction: row;
   align-items: center;
-  justify-content: flex-end;
+  justify-content: flex-start;
   gap: var(--space-2);
+  padding-block-end: 0.7rem;
+}
+
+.field--checkbox input[type='checkbox'] {
+  width: 1.15rem;
+  height: 1.15rem;
+  accent-color: var(--brand);
+  cursor: pointer;
 }
 
 .availability__form-actions {
   display: flex;
   justify-content: flex-end;
+  gap: var(--space-3);
 }
 
 /* ── Listas de reglas/excepciones ────────────────────────────────────── */
@@ -109,4 +124,9 @@
   strong {
     margin-right: var(--space-2);
   }
+}
+
+.availability__confirm-hint {
+  color: var(--ink-soft);
+  font-size: 0.9rem;
 }

@@ -156,10 +156,16 @@ describe('AvailabilityPageComponent', () => {
     expect(el.textContent).toContain('Ya existe una regla de 08:00 a 20:00');
   });
 
-  it('elimina una regla existente', async () => {
+  it('pide confirmación antes de eliminar una regla y recién ahí llama al endpoint', async () => {
     const el = await montar();
 
     click(el, '.availability__row button');
+    await estabilizar();
+
+    // El modal de confirmación no llama al backend por sí solo.
+    expect(api.ultimaReglaEliminada).toBeNull();
+
+    click(el, '.modal--danger .button--danger-solid');
     await estabilizar();
 
     expect(api.ultimaReglaEliminada).toBe('rule-1');

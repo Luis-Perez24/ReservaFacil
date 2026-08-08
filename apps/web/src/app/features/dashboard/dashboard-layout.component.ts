@@ -1,10 +1,13 @@
 import { HttpErrorResponse } from '@angular/common/http';
-import { ChangeDetectionStrategy, Component, DestroyRef, inject, signal } from '@angular/core';
+import { ChangeDetectionStrategy, Component, DestroyRef, computed, inject, signal } from '@angular/core';
 import { takeUntilDestroyed } from '@angular/core/rxjs-interop';
 import { Router, RouterLink, RouterLinkActive, RouterOutlet } from '@angular/router';
+import { LucideAngularModule } from 'lucide-angular';
 
 import { TenantApi } from '../../core/api/tenant.api';
 import { AuthService } from '../../core/auth/auth.service';
+import { ThemeService } from '../../core/theme/theme.service';
+import { ToastComponent } from '../../core/toast/toast.component';
 
 /**
  * Cabecera fija de `/dashboard` (nombre del negocio + salir) con el resto de
@@ -15,7 +18,7 @@ import { AuthService } from '../../core/auth/auth.service';
 @Component({
   selector: 'app-dashboard-layout',
   standalone: true,
-  imports: [RouterOutlet, RouterLink, RouterLinkActive],
+  imports: [RouterOutlet, RouterLink, RouterLinkActive, LucideAngularModule, ToastComponent],
   templateUrl: './dashboard-layout.component.html',
   styleUrl: './dashboard-layout.component.scss',
   changeDetection: ChangeDetectionStrategy.OnPush,
@@ -26,8 +29,24 @@ export class DashboardLayoutComponent {
   private readonly router = inject(Router);
   private readonly destroyRef = inject(DestroyRef);
 
+  readonly theme = inject(ThemeService);
+
   readonly user = this.auth.user;
   readonly businessName = signal<string | null>(null);
+
+  /** "Daniela Soto" → "DS". Sin foto de perfil en el modelo, así que el avatar es siempre iniciales. */
+  readonly initials = computed(() => {
+    const fullName = this.user()?.fullName;
+    if (!fullName) {
+      return '?';
+    }
+    return fullName
+      .trim()
+      .split(/\s+/)
+      .slice(0, 2)
+      .map((word) => word[0]?.toUpperCase() ?? '')
+      .join('');
+  });
 
   constructor() {
     this.tenantApi

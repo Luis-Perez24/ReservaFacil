@@ -1,0 +1,6 @@
+@if (toast.message(); as message) {
+  <div class="toast toast--success" [class.toast--leaving]="toast.leaving()" role="status">
+    <lucide-icon name="circle-check" [size]="18" />
+    {{ message }}
+  </div>
+}

@@ -75,7 +75,7 @@
                   <strong>{{ dayLabel(rule.dayOfWeek) }}</strong>
                   {{ rule.startTime }}–{{ rule.endTime }} · turnos de {{ rule.slotIntervalMin }} min
                 </span>
-                <button class="button button--ghost" type="button" (click)="deleteRule(rule.id)">Eliminar</button>
+                <button class="button button--danger" type="button" (click)="requestDeleteRule(rule)">Eliminar</button>
               </li>
             }
           </ul>
@@ -103,17 +103,15 @@
           <span class="field__label">Cerrado todo el día</span>
         </label>
 
-        @if (!exceptionForm.controls.closed.value) {
-          <label class="field">
-            <span class="field__label">Desde</span>
-            <input class="field__input" type="time" formControlName="startTime" />
-          </label>
+        <label class="field">
+          <span class="field__label">Desde</span>
+          <input class="field__input" type="time" formControlName="startTime" />
+        </label>
 
-          <label class="field">
-            <span class="field__label">Hasta</span>
-            <input class="field__input" type="time" formControlName="endTime" />
-          </label>
-        }
+        <label class="field">
+          <span class="field__label">Hasta</span>
+          <input class="field__input" type="time" formControlName="endTime" />
+        </label>
       </div>
 
       @if (exceptionFormError(); as error) {
@@ -152,7 +150,7 @@
                     {{ exception.startTime }}–{{ exception.endTime }}
                   }
                 </span>
-                <button class="button button--ghost" type="button" (click)="deleteException(exception.id)">
+                <button class="button button--danger" type="button" (click)="requestDeleteException(exception)">
                   Eliminar
                 </button>
               </li>
@@ -162,4 +160,23 @@
       }
     }
   </article>
+
+  <!-- Confirmación antes de borrar (regla o excepción, mismo modal). -->
+  <dialog #confirmDialog class="modal modal--danger" (close)="cancelDelete()">
+    @if (deleteTarget(); as target) {
+      <div class="modal__panel">
+        <h2 class="card__title">¿Eliminar "{{ target.label }}"?</h2>
+        <p class="availability__confirm-hint">Esta acción no se puede deshacer.</p>
+        <div class="availability__form-actions">
+          <button class="button button--ghost" type="button" (click)="cancelDelete()">Cancelar</button>
+          <button class="button button--danger-solid" type="button" [disabled]="deleting()" (click)="confirmDelete()">
+            @if (deleting()) {
+              <span class="spinner" aria-hidden="true"></span>
+            }
+            Eliminar
+          </button>
+        </div>
+      </div>
+    }
+  </dialog>
 </section>
