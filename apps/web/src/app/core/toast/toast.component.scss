@@ -1,0 +1,55 @@
+.toast {
+  position: fixed;
+  right: var(--space-6);
+  bottom: var(--space-6);
+  display: flex;
+  align-items: center;
+  gap: var(--space-2);
+  padding: var(--space-3) var(--space-6);
+  border-radius: 12px;
+  font-weight: 600;
+  font-size: 0.9rem;
+  color: #fff;
+  box-shadow: 0 16px 40px -16px rgb(0 0 0 / 0.4);
+  z-index: 50;
+  opacity: 1;
+  transform: translateY(0);
+  /* Misma duración para entrada (`animation`) y salida (`transition` al
+     agregar `.toast--leaving`) — que se sienta como un solo movimiento
+     reversible, no dos efectos distintos. */
+  transition:
+    opacity 220ms var(--ease-out),
+    transform 220ms var(--ease-out);
+  animation: toast-in 220ms var(--ease-out);
+}
+
+.toast--success {
+  background: #16a34a;
+}
+
+.toast--leaving {
+  opacity: 0;
+  transform: translateY(8px);
+}
+
+@keyframes toast-in {
+  from {
+    opacity: 0;
+    transform: translateY(8px);
+  }
+  to {
+    opacity: 1;
+    transform: translateY(0);
+  }
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .toast {
+    animation: none;
+    transition: opacity 120ms linear;
+  }
+
+  .toast--leaving {
+    transform: none;
+  }
+}
