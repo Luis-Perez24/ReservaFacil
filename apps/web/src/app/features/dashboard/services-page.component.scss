@@ -120,3 +120,12 @@
     transition: none;
   }
 }
+
+/* Campos del modal de editar, uno debajo del otro: `.services__form-grid` usa
+   auto-fit pensado para el ancho completo de la página, y en el modal (más
+   angosto) esas columnas terminaban pisándose. Una sola columna no tiene ese
+   problema sin importar cuán angosto sea el modal. */
+.modal__fields {
+  display: grid;
+  gap: var(--space-4);
+}

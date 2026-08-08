@@ -6,51 +6,50 @@
     </div>
   </header>
 
-  <form class="card services__form reveal is-visible" [formGroup]="form" (ngSubmit)="submit()">
-    <h2 class="card__title">{{ editingId() ? 'Editar servicio' : 'Nuevo servicio' }}</h2>
+  @if (!editingId()) {
+    <form class="card services__form reveal is-visible" [formGroup]="form" (ngSubmit)="submit()">
+      <h2 class="card__title">Nuevo servicio</h2>
 
-    <div class="services__form-grid">
-      <label class="field">
-        <span class="field__label">Nombre</span>
-        <input class="field__input" type="text" formControlName="name" placeholder="Corte de pelo" />
-        @if (form.controls.name.touched && form.controls.name.invalid) {
-          <span class="field__error">Escribe un nombre.</span>
-        }
-      </label>
+      <div class="services__form-grid">
+        <label class="field">
+          <span class="field__label">Nombre</span>
+          <input class="field__input" type="text" formControlName="name" placeholder="Corte de pelo" />
+          @if (form.controls.name.touched && form.controls.name.invalid) {
+            <span class="field__error">Escribe un nombre.</span>
+          }
+        </label>
 
-      <label class="field">
-        <span class="field__label">Duración (min)</span>
-        <input class="field__input" type="number" formControlName="durationMin" min="1" max="1440" />
-        @if (form.controls.durationMin.touched && form.controls.durationMin.invalid) {
-          <span class="field__error">Entre 1 y 1440 minutos.</span>
-        }
-      </label>
+        <label class="field">
+          <span class="field__label">Duración (min)</span>
+          <input class="field__input" type="number" formControlName="durationMin" min="1" max="1440" />
+          @if (form.controls.durationMin.touched && form.controls.durationMin.invalid) {
+            <span class="field__error">Entre 1 y 1440 minutos.</span>
+          }
+        </label>
 
-      <label class="field">
-        <span class="field__label">Precio (CLP)</span>
-        <input class="field__input" type="number" formControlName="priceClp" min="0" />
-        @if (form.controls.priceClp.touched && form.controls.priceClp.invalid) {
-          <span class="field__error">El precio no puede ser negativo.</span>
-        }
-      </label>
-    </div>
+        <label class="field">
+          <span class="field__label">Precio (CLP)</span>
+          <input class="field__input" type="number" formControlName="priceClp" min="0" />
+          @if (form.controls.priceClp.touched && form.controls.priceClp.invalid) {
+            <span class="field__error">El precio no puede ser negativo.</span>
+          }
+        </label>
+      </div>
 
-    @if (formError(); as error) {
-      <p class="field__error" role="alert">{{ error }}</p>
-    }
-
-    <div class="services__form-actions">
-      @if (editingId()) {
-        <button class="button button--ghost" type="button" (click)="cancelEdit()">Cancelar</button>
+      @if (formError(); as error) {
+        <p class="field__error" role="alert">{{ error }}</p>
       }
-      <button class="button" type="submit" [disabled]="submitting()">
-        @if (submitting()) {
-          <span class="spinner" aria-hidden="true"></span>
-        }
-        {{ editingId() ? 'Guardar cambios' : 'Crear servicio' }}
-      </button>
-    </div>
-  </form>
+
+      <div class="services__form-actions">
+        <button class="button" type="submit" [disabled]="submitting()">
+          @if (submitting()) {
+            <span class="spinner" aria-hidden="true"></span>
+          }
+          Crear servicio
+        </button>
+      </div>
+    </form>
+  }
 
   @switch (state().status) {
     @case ('loading') {
@@ -76,9 +75,13 @@
               <p class="services__meta">{{ service.durationMin }} min · {{ formatClp(service.priceClp) }}</p>
               <div class="services__item-actions">
                 <button class="button button--ghost" type="button" (click)="startEdit(service)">Editar</button>
-                <button class="button button--ghost" type="button" (click)="toggleActive(service)">
-                  {{ service.active ? 'Desactivar' : 'Reactivar' }}
-                </button>
+                @if (service.active) {
+                  <button class="button button--danger" type="button" (click)="requestDeactivate(service)">
+                    Desactivar
+                  </button>
+                } @else {
+                  <button class="button button--success" type="button" (click)="reactivate(service)">Reactivar</button>
+                }
               </div>
             </article>
           }
@@ -86,4 +89,74 @@
       }
     }
   }
+
+  <!-- Editar: mismo form que "Nuevo servicio", en un modal en vez de reemplazar la tarjeta de alta. -->
+  <dialog #editDialog class="modal" (close)="cancelEdit()">
+    @if (editingId()) {
+      <form class="modal__panel" [formGroup]="form" (ngSubmit)="submit()">
+        <h2 class="card__title">Editar servicio</h2>
+
+        <div class="modal__fields">
+          <label class="field">
+            <span class="field__label">Nombre</span>
+            <input class="field__input" type="text" formControlName="name" placeholder="Corte de pelo" />
+            @if (form.controls.name.touched && form.controls.name.invalid) {
+              <span class="field__error">Escribe un nombre.</span>
+            }
+          </label>
+
+          <label class="field">
+            <span class="field__label">Duración (min)</span>
+            <input class="field__input" type="number" formControlName="durationMin" min="1" max="1440" />
+            @if (form.controls.durationMin.touched && form.controls.durationMin.invalid) {
+              <span class="field__error">Entre 1 y 1440 minutos.</span>
+            }
+          </label>
+
+          <label class="field">
+            <span class="field__label">Precio (CLP)</span>
+            <input class="field__input" type="number" formControlName="priceClp" min="0" />
+            @if (form.controls.priceClp.touched && form.controls.priceClp.invalid) {
+              <span class="field__error">El precio no puede ser negativo.</span>
+            }
+          </label>
+        </div>
+
+        @if (formError(); as error) {
+          <p class="field__error" role="alert">{{ error }}</p>
+        }
+
+        <div class="services__form-actions">
+          <button class="button button--ghost" type="button" (click)="cancelEdit()">Cancelar</button>
+          <button class="button" type="submit" [disabled]="submitting()">
+            @if (submitting()) {
+              <span class="spinner" aria-hidden="true"></span>
+            }
+            Guardar cambios
+          </button>
+        </div>
+      </form>
+    }
+  </dialog>
+
+  <!-- Confirmación antes de desactivar: la única acción realmente destructiva de esta página. -->
+  <dialog #confirmDialog class="modal modal--danger" (close)="cancelDeactivate()">
+    @if (deactivateTarget(); as service) {
+      <div class="modal__panel">
+        <h2 class="card__title">¿Desactivar "{{ service.name }}"?</h2>
+        <p class="services__meta">
+          Los clientes ya no podrán reservarlo desde la página pública. Podrás reactivarlo cuando quieras.
+        </p>
+        <div class="services__form-actions">
+          <button class="button button--ghost" type="button" (click)="cancelDeactivate()">Cancelar</button>
+          <button class="button button--danger-solid" type="button" [disabled]="deactivating()" (click)="confirmDeactivate()">
+            @if (deactivating()) {
+              <span class="spinner" aria-hidden="true"></span>
+            }
+            Desactivar
+          </button>
+        </div>
+      </div>
+    }
+  </dialog>
 </section>
