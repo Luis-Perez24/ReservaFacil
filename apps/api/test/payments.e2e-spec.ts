@@ -382,4 +382,40 @@ describe('Payments (e2e)', () => {
       expect(webpay.commitCalls).toBe(0);
     });
   });
+
+  describe('GET /payments/webpay/return', () => {
+    /**
+     * El ambiente de integración de Transbank a veces redirige por GET con
+     * `token_ws` en el query string en vez del POST que describe la
+     * documentación — confirmado a mano probando el flujo completo. Mismo
+     * comportamiento que el POST, mismo handler por debajo.
+     */
+    it('★ pago aprobado por GET: PENDING → CONFIRMED igual que por POST', async () => {
+      const { reservationId } = await setupReserva();
+      const inicio = await iniciarPago(reservationId).expect(201);
+
+      const respuesta = await request(app.getHttpServer())
+        .get('/payments/webpay/return')
+        .query({ token_ws: inicio.body.token })
+        .expect(302);
+
+      expect(respuesta.headers.location).toBe(
+        `http://localhost:4200/barberia-pagos/reserva/${reservationId}`,
+      );
+      expect(await estadoReserva(reservationId)).toBe('CONFIRMED');
+    });
+
+    it('sin token_ws por GET también se trata como anulación', async () => {
+      const { reservationId } = await setupReserva();
+      await iniciarPago(reservationId).expect(201);
+
+      const respuesta = await request(app.getHttpServer())
+        .get('/payments/webpay/return')
+        .query({ TBK_TOKEN: 'abc' })
+        .expect(302);
+
+      expect(respuesta.headers.location).toBe('http://localhost:4200/pago/anulado');
+      expect(await estadoReserva(reservationId)).toBe('PENDING');
+    });
+  });
 });

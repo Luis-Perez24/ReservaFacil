@@ -1,4 +1,4 @@
-import { Body, Controller, Param, ParseUUIDPipe, Post, Redirect } from '@nestjs/common';
+import { Body, Controller, Get, Param, ParseUUIDPipe, Post, Query, Redirect } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { ApiOperation, ApiTags } from '@nestjs/swagger';
 import type { InitPaymentResponse } from '@reservafacil/contracts';
@@ -34,17 +34,31 @@ export class PaymentsController {
   }
 
   /**
-   * Webpay redirige el navegador acá con un POST. No devuelve JSON: quien pagó
-   * es una persona mirando la pantalla, así que se hace el commit y se la manda
-   * a la página de su reserva, que muestra en qué terminó todo.
+   * Webpay redirige el navegador acá. La documentación de Transbank describe
+   * un POST (form autoenviado), pero el ambiente de integración también
+   * redirige por GET con `token_ws` en el query string — confirmado a mano
+   * probando el flujo completo. Se aceptan los dos con la misma lógica: no
+   * devuelve JSON, quien pagó es una persona mirando la pantalla, así que se
+   * hace el commit y se la manda a la página de su reserva.
    *
    * El resultado viaja como estado en la URL, no como dato de confianza: la
    * página igual le pregunta a la API por el estado real de la reserva.
    */
   @Post('payments/webpay/return')
   @Redirect()
-  @ApiOperation({ summary: 'Retorno de Webpay: confirma el pago y redirige al frontend' })
-  async webpayReturn(@Body() dto: WebpayReturnDto): Promise<RedirectResult> {
+  @ApiOperation({ summary: 'Retorno de Webpay por POST: confirma el pago y redirige al frontend' })
+  async webpayReturnPost(@Body() dto: WebpayReturnDto): Promise<RedirectResult> {
+    return this.resolveWebpayReturn(dto);
+  }
+
+  @Get('payments/webpay/return')
+  @Redirect()
+  @ApiOperation({ summary: 'Retorno de Webpay por GET: mismo caso, algunos ambientes redirigen así' })
+  async webpayReturnGet(@Query() dto: WebpayReturnDto): Promise<RedirectResult> {
+    return this.resolveWebpayReturn(dto);
+  }
+
+  private async resolveWebpayReturn(dto: WebpayReturnDto): Promise<RedirectResult> {
     const webBaseUrl = this.config.getOrThrow<string>('WEB_BASE_URL');
 
     // Sin token_ws solo puede ser una anulación del cliente: no hay nada que
