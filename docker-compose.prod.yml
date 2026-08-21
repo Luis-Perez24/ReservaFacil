@@ -1,20 +1,4 @@
-# Este es el archivo que Coolify despliega. Ningún servicio publica puertos al
-# host: Coolify asigna el dominio por servicio desde su panel (Servicios →
-# elegir el contenedor → Domains) y enruta a través de su propia red de proxy,
-# detectando el puerto en el que escucha cada uno. Publicar puertos aquí no
-# ayuda a eso y puede chocar con el puerto de otro proyecto en la misma VPS.
-#
-# Solo `web` necesita dominio asignado: es el único origen público, y hacia
-# adentro reenvía la API y el WebSocket (ver apps/web/nginx.conf). `mailpit`
-# también puede llevar un dominio propio —para revisar los recordatorios
-# enviados en la demo— pero nunca sin `MP_UI_AUTH`, que es lo único que le
-# pone una contraseña a su bandeja.
-#
-# Para probar el build completo en local antes de tocar Coolify, se corre
-# igual (`docker-compose -f docker-compose.prod.yml --env-file .env.prod up
-# --build`) y se verifica por dentro de la red de compose, no por el host:
-#
-#   docker run --rm --network <proyecto>_default curlimages/curl -s http://web/
+# docker-compose -f docker-compose.prod.yml --env-file .env.prod up -d --build
 
 services:
   postgres:
@@ -59,8 +43,6 @@ services:
       POSTGRES_PORT: '5432'
       REDIS_HOST: redis
       REDIS_PORT: '6379'
-      # Mismo motivo: mailpit es un servicio de este compose, alcanzable por
-      # su nombre, no por el localhost:1025 que trae el .env de desarrollo.
       SMTP_HOST: mailpit
       SMTP_PORT: '1025'
       # Este servicio es el único que aplica migraciones al arrancar.
@@ -117,18 +99,10 @@ services:
       api:
         condition: service_healthy
 
-  # SMTP real, no de mentira: mismo motivo que en desarrollo (comentario en
-  # docker-compose.yml), la diferencia es que aquí sirve para comprobar en la
-  # demo que el mecanismo de recordatorios funciona de punta a punta, sin
-  # depender de contratar un proveedor de correo real para un proyecto de
-  # portafolio.
   mailpit:
     image: axllent/mailpit:v1.20
     restart: unless-stopped
     environment:
-      # Sin esto la bandeja queda abierta a cualquiera que encuentre el
-      # dominio, y ahi llegan nombre y email reales de quien reserve en la
-      # demo. Se define en .env.prod, nunca en este archivo.
       MP_UI_AUTH: ${MAILPIT_UI_AUTH:?falta MAILPIT_UI_AUTH}
 
 volumes:
