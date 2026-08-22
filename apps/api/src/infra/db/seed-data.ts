@@ -59,8 +59,6 @@ export interface SeedBusiness {
 export const DEMO_PASSWORD = process.env.SEED_PASSWORD ?? 'demo1234';
 
 const unsplash = (id: string): string => `https://images.unsplash.com/${id}?w=1920&q=80`;
-const portrait = (gender: 'men' | 'women', n: number): string =>
-  `https://randomuser.me/api/portraits/${gender}/${n}.jpg`;
 
 /**
  * Dos rubros a propósito distintos: uno vende el tiempo de una persona y el
@@ -83,9 +81,13 @@ export const DEMO_BUSINESSES: SeedBusiness[] = [
         'cada corte antes que atender a tres personas apuradas. Toallas calientes, ' +
         'navaja de verdad y una conversación si tienes ganas.',
       team: [
-        { name: 'Matías Fuentes', role: 'Barbero y fundador', photoUrl: portrait('men', 32) },
-        { name: 'Camila Rojas', role: 'Barbera', photoUrl: portrait('women', 44) },
-        { name: 'Ignacio Vera', role: 'Barbero', photoUrl: portrait('men', 75) },
+        {
+          name: 'Matías Fuentes',
+          role: 'Barbero y fundador',
+          photoUrl: unsplash('photo-1651684215020-f7a5b6610f23'),
+        },
+        { name: 'Josefina Rivas', role: 'Barbera', photoUrl: unsplash('photo-1627161683077-e34782c24d81') },
+        { name: 'Ignacio Vera', role: 'Barbero', photoUrl: unsplash('photo-1568602471122-7832951cc4c5') },
       ],
       address: 'Av. Providencia 1234, Providencia, Santiago',
       hours: 'Lunes a viernes de 10:00 a 19:00 · Sábado de 10:00 a 14:00',
@@ -130,8 +132,16 @@ export const DEMO_BUSINESSES: SeedBusiness[] = [
         'solo, deja tu nombre en la pizarra de la entrada y te avisamos cuando ' +
         'falte un cuarto para armar un partido.',
       team: [
-        { name: 'Daniela Soto', role: 'Coordinadora del club', photoUrl: portrait('women', 68) },
-        { name: 'Rodrigo Lagos', role: 'Profesor de pádel', photoUrl: portrait('men', 11) },
+        {
+          name: 'Daniela Soto',
+          role: 'Coordinadora del club',
+          photoUrl: unsplash('photo-1611432579699-484f7990b127'),
+        },
+        {
+          name: 'Rodrigo Lagos',
+          role: 'Profesor de pádel',
+          photoUrl: unsplash('photo-1705645930353-0e335311ef20'),
+        },
       ],
       address: 'Av. Irarrázaval 4500, Ñuñoa, Santiago',
       hours: 'Todos los días de 08:00 a 23:00',
